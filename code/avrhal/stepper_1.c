@@ -1,8 +1,10 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <util/delay.h>
-
 #include <stdbool.h>
+
+//#include "utils/bit.h"
+
 
 #define EN_PIN PB0
 #define MS1_PIN PB1
@@ -13,6 +15,16 @@
 #define STEP_PIN PB6
 #define DIR_PIN PB7
 
+#define STEPPER_DELAY_US 5000
+#define STEPPER_MIN_DELAY 1000
+
+uint8_t steps_taken = 0;
+
+typedef struct{
+    volatile uint8_t* dataDirectionRegister;
+    volatile uint8_t* portRegister;
+} Stepper;
+
 typedef enum
 {
     MICROSTEP_FULL = 0b000,     // MS1=L, MS2=L, MS3=L — Full Step, 2 Phase
@@ -22,15 +34,26 @@ typedef enum
     MICROSTEP_SIXTEENTH = 0b111 // MS1=H, MS2=H, MS3=H — Sixteenth Step, 4W1-2 Phase
 } MicrostepMode;
 
-void stepper_mode_select(MicrostepMode microstep){
+void stepper_mode_select(MicrostepMode mode){
+    // Clear current MS1–MS3 bits
+    PORTD &= ~((1 << MS1_PIN) | (1 << MS2_PIN) | (1 << MS3_PIN));
 
+    //Check each bit and set if wanted
+    if (mode & 0b100)
+        PORTD |= (1 << MS1_PIN);
+    if (mode & 0b010)
+        PORTD |= (1 << MS2_PIN);
+    if (mode & 0b001)
+        PORTD |= (1 << MS3_PIN);
+
+    _delay_us(5000);
 }
 
-void stepper_setup()
+void stepper_setup(Stepper stepper)
 {
     // DDRD = 0;
     // PORTD = 0;
-    //  Set STEP, DIR, RST, MS1, MS2, MS3 as outputs
+    //  Set STEP, DIR, RST, SLP, MS1, MS2, MS3 as outputs
     DDRB |= (1 << EN_PIN) | // 1 disable, 0 enable
             (1 << MS1_PIN) |
             (1 << MS2_PIN) |
@@ -46,6 +69,8 @@ void stepper_setup()
     PORTB |= (1 << SLP_PIN);                                      // disable sleep mode
     PORTB &= ~(1 << EN_PIN);                                      // clear enable pin to enable
     PORTB &= ~((1 << MS1_PIN) | (1 << MS2_PIN) | (1 << MS3_PIN)); // Default to full step
+
+    _delay_us(5000);
 }
 
 void stepper_set_direction(bool dir)
@@ -54,14 +79,25 @@ void stepper_set_direction(bool dir)
         PORTB |= (1 << DIR_PIN);
     else
         PORTB &= ~(1 << DIR_PIN);
+    
+    _delay_us(5000);
 }
 
-void stepper_step()
+void stepper_step() //DO NOT CALL THIS BY ITSELF
 {
+    //TODO TEST WHAT LOWEST POSSIBLE DELAY IS AND ADD FAILSAFE
+
     PORTB |= (1 << STEP_PIN); // Start Pull_High
-    _delay_us(3000);
+    _delay_us(STEPPER_DELAY_US);
     PORTB &= ~(1 << STEP_PIN); // Pull LOW
-    _delay_us(3000);
+    _delay_us(STEPPER_DELAY_US);
+}
+
+void stepper_step_n(int steps){
+    for(int step = 0 ; step < steps ; step++){
+        stepper_step();
+    }
+    steps_taken += steps;
 }
 
 int main(int argc, char const *argv[])
@@ -69,21 +105,13 @@ int main(int argc, char const *argv[])
     int dir = 0;
 
     stepper_setup();
-    _delay_us(5000);
-    
-    _delay_us(5000);
 
-    
     while (1)
     {
         stepper_set_direction(dir);
-        _delay_us(5000);
-        for (int i = 0; i < 200; i++)
-        {
-            stepper_step();
-        }
-        dir = !dir;
+        stepper_step_n(200);
         _delay_ms(2000);
+        dir = !dir;
     }
     return 0;
 }
