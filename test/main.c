@@ -13,11 +13,24 @@
 #define STEP_PIN PB6
 #define DIR_PIN PB7
 
+typedef enum
+{
+    MICROSTEP_FULL = 0b000,     // MS1=L, MS2=L, MS3=L — Full Step, 2 Phase
+    MICROSTEP_HALF = 0b100,     // MS1=H, MS2=L, MS3=L — Half Step, 1-2 Phase
+    MICROSTEP_QUARTER = 0b010,  // MS1=L, MS2=H, MS3=L — Quarter Step, W1-2 Phase
+    MICROSTEP_EIGHTH = 0b110,   // MS1=H, MS2=H, MS3=L — Eighth Step, 2W1-2 Phase
+    MICROSTEP_SIXTEENTH = 0b111 // MS1=H, MS2=H, MS3=H — Sixteenth Step, 4W1-2 Phase
+} MicrostepMode;
+
+void stepper_mode_select(MicrostepMode microstep){
+
+}
+
 void stepper_setup()
 {
-    //DDRD = 0;
-    //PORTD = 0;
-    // Set STEP, DIR, RST, MS1, MS2, MS3 as outputs
+    // DDRD = 0;
+    // PORTD = 0;
+    //  Set STEP, DIR, RST, MS1, MS2, MS3 as outputs
     DDRB |= (1 << EN_PIN) | // 1 disable, 0 enable
             (1 << MS1_PIN) |
             (1 << MS2_PIN) |
@@ -43,23 +56,34 @@ void stepper_set_direction(bool dir)
         PORTB &= ~(1 << DIR_PIN);
 }
 
-void stepper_step(){
-    PORTB &= ~(1 << STEP_PIN); // Start LOW
-    _delay_ms(1);
+void stepper_step()
+{
     PORTB |= (1 << STEP_PIN); // Start Pull_High
-    _delay_us(2);
+    _delay_us(3000);
     PORTB &= ~(1 << STEP_PIN); // Pull LOW
-    _delay_us(2);
+    _delay_us(3000);
 }
 
 int main(int argc, char const *argv[])
 {
-    stepper_setup();
-    stepper_set_direction(0);
-    _delay_ms(200);
+    int dir = 0;
 
-    for(int i = 0 ; i < 10 ; i++){
-        stepper_step();
+    stepper_setup();
+    _delay_us(5000);
+    
+    _delay_us(5000);
+
+    
+    while (1)
+    {
+        stepper_set_direction(dir);
+        _delay_us(5000);
+        for (int i = 0; i < 200; i++)
+        {
+            stepper_step();
+        }
+        dir = !dir;
+        _delay_ms(2000);
     }
     return 0;
 }
