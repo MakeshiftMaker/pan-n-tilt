@@ -27,7 +27,8 @@ typedef struct
     const uint8_t rst_pin;
     const uint8_t slp_pin;
 
-    volatile int steps_remaining;
+    volatile uint8_t steps_taken;
+    volatile uint16_t steps_remaining;
 
     // Configuration shadow state
     volatile bool disable; // Desired state of enable pin (false = enable motor)

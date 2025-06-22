@@ -1,9 +1,9 @@
 #include "stepper.h"
 #include "utils/bit.h"
-#include <util/delay.h>
+//#include <util/delay.h>
 #include <avr/interrupt.h>
 
-#define STEP_DELAY_US 5000
+//#define STEP_DELAY_US 5000
 #define FCLK 8000000
 
 void stepper_setup(Stepper *s)
@@ -46,7 +46,7 @@ void stepper_setup(Stepper *s)
     BIT_CLR(*(s->port), s->ms2_pin);
     BIT_CLR(*(s->port), s->ms3_pin);
 
-    _delay_us(5000);
+    //_delay_us(5000);
 }
 
 void stepper_heartbeat_setup(int f)
