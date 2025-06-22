@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 
 #define STEP_DELAY_US 5000
+#define FCLK 8000000
 
 void stepper_setup(Stepper *s)
 {
@@ -48,8 +49,8 @@ void stepper_setup(Stepper *s)
     _delay_us(5000);
 }
 
-void heartbeat_setup()
-{ // use one timer to toggle step pin every 5000 microseconds to enable simontanious stepping
+void stepper_heartbeat_setup(int f)
+{   //set up timer1 to interrupt with frequency f Hz
     // set up the TCCR1A/B registries
 
     // clear Compare Output Modes for PB1/PB2 normal operation
@@ -77,11 +78,12 @@ void heartbeat_setup()
     */
     // enable interrupts on compare match
     BIT_SET(TIMSK, OCIE1A);
-    // set OCR1A (top value) to 2499 (200hz)
-    OCR1A = 2499;
+
+    //calculate OCR1A according to desired frequency
+    OCR1A = (FCLK/(16*f))-1;
 }
 
-void heartbeat_enable()
+void stepper_heartbeat_enable()
 {
     // Set prescaler to 8: CS12 = 0, CS11 = 1, CS10 = 0
     BIT_CLR(TCCR1B, CS12);
@@ -89,7 +91,7 @@ void heartbeat_enable()
     BIT_CLR(TCCR1B, CS10);
 }
 
-void heartbeat_disable()
+void stepper_heartbeat_disable()
 {
     // Stop timer by clearing all clock select bits
     BIT_CLR(TCCR1B, CS12);
@@ -139,15 +141,22 @@ void stepper_apply_config(Stepper *s)
     s->config_dirty = false;
 }
 
-bool is_dirty(Stepper* s){
+bool stepper_is_dirty(Stepper* s){
     return s->config_dirty;
 }
 
-ISR(TIMER1_COMPA_vect)
-{                           // toggle step pins with 200Hz
-    BIT_TOGGLE(PORTB, PB6); // Toggle PB1
-    BIT_TOGGLE(PORTD, PD6); // Toggle PD1
+void stepper_step_n(Stepper* stepper, int steps, bool dir){
+    stepper_set_dir(stepper, dir);
+    stepper_apply_config(stepper);
+    stepper->steps_remaining += steps;
 }
+
+
+
+
+
+
+
 
 // old code
 /*

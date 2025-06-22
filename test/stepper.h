@@ -47,11 +47,14 @@ void stepper_set_disable(Stepper *s, bool disable);
 void stepper_set_dir(Stepper *s, bool dir);
 void stepper_set_microstep(Stepper *s, MicrostepMode mode);
 
-bool is_dirty(Stepper* s);
+bool stepper_is_dirty(Stepper* s);
 
 // Heartbeat timer control
-void heartbeat_setup();
-void heartbeat_enable();
-void heartbeat_disable();
+void stepper_heartbeat_setup(int f);
+void stepper_heartbeat_enable();
+void stepper_heartbeat_disable();
+
+//stepper control
+void stepper_step_n(Stepper* stepper, int steps, bool dir);
 
 #endif
