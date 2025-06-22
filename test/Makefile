@@ -72,3 +72,7 @@ rpi/fan-control-cli.rpi: rpi/fan-control-cli.c
 	avrdude -c jtag3 -p m32 -P usb -U flash:w:$*.hex
 
 .PHONY: clean upload
+
+check: main.avrelf
+	@echo "Checking program size and RAM usage for main:"
+	avr-size --mcu=$(MCU) -C main.avrelf
