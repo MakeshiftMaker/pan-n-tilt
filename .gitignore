@@ -1,3 +1,4 @@
 *.FCBak
 *.step
 *.o
+*.hex
