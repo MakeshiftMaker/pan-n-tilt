@@ -2,3 +2,4 @@
 *.step
 *.o
 *.hex
+*.avrhelf
