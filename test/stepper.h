@@ -3,19 +3,7 @@
 
 #include <avr/io.h>
 #include <stdbool.h>
-
-typedef struct {
-    volatile uint8_t* ddr;
-    volatile uint8_t* port;
-    uint8_t step_pin;
-    uint8_t dir_pin;
-    uint8_t en_pin;
-    uint8_t ms1_pin;
-    uint8_t ms2_pin;
-    uint8_t ms3_pin;
-    uint8_t rst_pin;
-    uint8_t slp_pin;
-} Stepper;
+#include <avr/interrupt.h>
 
 typedef enum
 {
@@ -26,10 +14,44 @@ typedef enum
     MICROSTEP_SIXTEENTH = 0b111
 } MicrostepMode;
 
-void stepper_set_microstep_mode(Stepper* s, MicrostepMode mode);
-void stepper_setup(Stepper* s);
-void stepper_set_direction(Stepper* s, bool dir);
-void stepper_step(Stepper* s);
-void stepper_step_n(Stepper* s, int steps);
+typedef struct
+{
+    volatile uint8_t *ddr;
+    volatile uint8_t *port;
+    const uint8_t step_pin;
+    const uint8_t dir_pin;
+    const uint8_t en_pin;
+    const uint8_t ms1_pin;
+    const uint8_t ms2_pin;
+    const uint8_t ms3_pin;
+    const uint8_t rst_pin;
+    const uint8_t slp_pin;
+
+    volatile int steps_remaining;
+
+    // Configuration shadow state
+    volatile bool disable; // Desired state of enable pin (false = enable motor)
+    volatile bool dir;     // Desired direction
+    volatile MicrostepMode microstep_mode;
+
+    // Internal tracking
+    volatile bool config_dirty; // Dirty flag to apply config safely
+} Stepper;
+
+// Initialization and configuration
+void stepper_setup(Stepper *s);
+void stepper_apply_config(Stepper *s);
+
+// Configuration setters
+void stepper_set_disable(Stepper *s, bool disable);
+void stepper_set_dir(Stepper *s, bool dir);
+void stepper_set_microstep(Stepper *s, MicrostepMode mode);
+
+bool is_dirty(Stepper* s);
+
+// Heartbeat timer control
+void heartbeat_setup();
+void heartbeat_enable();
+void heartbeat_disable();
 
 #endif
