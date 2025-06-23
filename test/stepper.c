@@ -151,6 +151,16 @@ void stepper_step_n(Stepper* stepper, int steps, bool dir){
     stepper->steps_remaining += steps;
 }
 
+uint8_t stepper_microstep_multiplier(MicrostepMode mode) {
+    switch (mode) {
+        case MICROSTEP_FULL:      return 16;
+        case MICROSTEP_HALF:      return 8;
+        case MICROSTEP_QUARTER:   return 4;
+        case MICROSTEP_EIGHTH:    return 2;
+        case MICROSTEP_SIXTEENTH: return 1;
+        default:                  return 16; // fallback to full steps
+    }
+}
 
 
 

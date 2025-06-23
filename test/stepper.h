@@ -27,7 +27,7 @@ typedef struct
     const uint8_t rst_pin;
     const uint8_t slp_pin;
 
-    volatile uint8_t steps_taken;
+    volatile int32_t steps_taken; //in 1/16 steps
     volatile uint16_t steps_remaining;
 
     // Configuration shadow state
@@ -49,6 +49,7 @@ void stepper_set_dir(Stepper *s, bool dir);
 void stepper_set_microstep(Stepper *s, MicrostepMode mode);
 
 bool stepper_is_dirty(Stepper* s);
+uint8_t stepper_microstep_multiplier(MicrostepMode mode);
 
 // Heartbeat timer control
 void stepper_heartbeat_setup(int f);

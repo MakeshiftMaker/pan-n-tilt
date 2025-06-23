@@ -15,7 +15,7 @@ Stepper stepper_pan = {
     .rst_pin = PB4,
     .slp_pin = PB5,
 
-    //.steps_taken = 0,
+    .steps_taken = 0,
     .steps_remaining = 0,
 
     .disable = false,
@@ -38,7 +38,7 @@ Stepper stepper_tilt = {
     .rst_pin = PD4,
     .slp_pin = PD5,
 
-    //.steps_taken = 0,
+    .steps_taken = 0,
     .steps_remaining = 0,
 
     .disable = false,
@@ -62,15 +62,17 @@ int main(void)
 
     stepper_heartbeat_enable();
 
-    
-
     stepper_step_n(&stepper_pan, 200, 1);
+    stepper_step_n(&stepper_tilt, 200, 1);
 
-    while (stepper_pan.steps_remaining > 0 || stepper_tilt.steps_remaining > 0);
+    while (stepper_pan.steps_remaining > 0 || stepper_tilt.steps_remaining > 0)
+        ;
 
     stepper_step_n(&stepper_pan, 200, 0);
+    stepper_step_n(&stepper_tilt, 200, 0);
 
-    while (stepper_pan.steps_remaining > 0 || stepper_tilt.steps_remaining > 0);
+    while (stepper_pan.steps_remaining > 0 || stepper_tilt.steps_remaining > 0)
+        ;
 
     return 0;
 }
@@ -84,7 +86,9 @@ ISR(TIMER1_COMPA_vect)
         BIT_TOGGLE(*(stepper_pan.port), stepper_pan.step_pin); // Toggle PB1 (Pan)
         _delay_us(1);
         stepper_pan.steps_remaining--;
-        //stepper_pan.steps_taken++;
+        
+        int8_t step_direction = stepper_pan.dir ? 1 : -1;
+        stepper_pan.steps_taken += step_direction * stepper_microstep_multiplier(stepper_pan.microstep_mode);
     }
 
     if (stepper_tilt.steps_remaining > 0)
@@ -94,6 +98,8 @@ ISR(TIMER1_COMPA_vect)
         BIT_TOGGLE(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
         _delay_us(1);
         stepper_tilt.steps_remaining--;
-        //stepper_tilt.steps_taken++;
+        
+        int8_t step_direction = stepper_tilt.dir ? 1 : -1;
+        stepper_tilt.steps_taken += step_direction * stepper_microstep_multiplier(stepper_tilt.microstep_mode);
     }
 }
