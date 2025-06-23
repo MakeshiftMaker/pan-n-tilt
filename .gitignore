@@ -1,3 +1,5 @@
 *.FCBak
 *.step
 *.o
+/test
+*.hex
