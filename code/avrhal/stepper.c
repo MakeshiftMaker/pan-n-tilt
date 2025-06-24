@@ -1,5 +1,5 @@
 #include "stepper.h"
-#include "utils/bit.h"
+#include "../utils/bit.h"
 //#include <util/delay.h>
 #include <avr/interrupt.h>
 

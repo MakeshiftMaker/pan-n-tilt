@@ -53,7 +53,7 @@ int main(void)
 
     stepper_setup(&stepper_pan);
     stepper_setup(&stepper_tilt);
-    stepper_heartbeat_setup(100);
+    stepper_heartbeat_setup(50);
 
     stepper_set_disable(&stepper_pan, false);
     stepper_set_disable(&stepper_tilt, false);
@@ -62,14 +62,14 @@ int main(void)
 
     stepper_heartbeat_enable();
 
-    stepper_step_n(&stepper_pan, 200, 1);
-    stepper_step_n(&stepper_tilt, 200, 1);
+    stepper_step_n(&stepper_pan, 200*3, 1);
+    stepper_step_n(&stepper_tilt, 200*3, 1);
 
     while (stepper_pan.steps_remaining > 0 || stepper_tilt.steps_remaining > 0)
         ;
 
-    stepper_step_n(&stepper_pan, 200, 0);
-    stepper_step_n(&stepper_tilt, 200, 0);
+    stepper_step_n(&stepper_pan, 200*3, 0);
+    stepper_step_n(&stepper_tilt, 200*3, 0);
 
     while (stepper_pan.steps_remaining > 0 || stepper_tilt.steps_remaining > 0)
         ;

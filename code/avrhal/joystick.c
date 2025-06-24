@@ -1,6 +1,6 @@
 #include "adc.h"
 #include "usart.h"
-#include "bit.h"
+#include "utils/bit.h"
 #include <avr/io.h>
 
 

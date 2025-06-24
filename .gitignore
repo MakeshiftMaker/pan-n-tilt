@@ -1,10 +1,6 @@
 *.FCBak
 *.step
 *.o
-<<<<<<< HEAD
 /test
 *.hex
-=======
-*.hex
 *.avrelf
->>>>>>> stepper

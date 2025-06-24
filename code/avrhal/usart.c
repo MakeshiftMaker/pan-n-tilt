@@ -3,7 +3,7 @@
 */
 
 #include "usart.h"
-#include "bit.h"
+#include "utils/bit.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <stdarg.h>

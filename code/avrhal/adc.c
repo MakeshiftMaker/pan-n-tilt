@@ -1,5 +1,5 @@
 #include "adc.h"
-#include "bit.h"
+#include "utils/bit.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
