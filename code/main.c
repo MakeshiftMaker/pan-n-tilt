@@ -6,6 +6,12 @@
 #include "avrhal/usart.h" #
 #include "avrhal/adc.h"
 
+typedef enum {
+    STOP,
+    LEFT,
+    RIGHT
+} Direction;
+
 Stepper stepper_pan = {
     .ddr = &DDRB,
     .port = &PORTB,
@@ -83,6 +89,40 @@ int main(void)
 
         int tilt_whole = (int)tilt_deg;
         int tilt_frac = (int)((tilt_deg - tilt_whole) * 100);
+
+        if (joy[0] < 300)
+            pan_direction = LEFT;
+        else if (joy[0] > 700)
+            pan_direction = RIGHT;
+        else
+            pan_direction = STOP;
+
+        if (joy[1] < 300)
+            pan_direction = LEFT;
+        else if (joy[1] > 700)
+            pan_direction = RIGHT;
+        else
+            pan_direction = STOP;
+
+            switch (pan_direction)
+            {
+            case LEFT:
+                if (stepper_pan.steps_remaining == 0)
+                {
+                    stepper_set_dir(&stepper_pan, 0);
+                    stepper_step_n(&stepper_pan, 1, 0);
+                }
+                break;
+            case RIGHT:
+                if (stepper_pan.steps_remaining == 0)
+                {
+                    stepper_set_dir(&stepper_pan, 1);
+                    stepper_step_n(&stepper_pan, 1, 1);
+                }
+                break;
+            case STOP:
+                break;
+            }
 
         usartPrint(
             "X: %4d, Y: %4d, B: %d | "
