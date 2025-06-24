@@ -84,6 +84,7 @@ int main(void)
     Direction pan_direction = STOP;
     Direction tilt_direction = STOP;
 
+
     while (1)
     {
         joystickRead(joy);
@@ -133,20 +134,9 @@ int main(void)
             }
         }
 
-        if (joy[2] == 1){
-            if (stepper_pan.steps_taken != 0 && stepper_pan.steps_remaining == 0)
-            {
-                bool dir = stepper_pan.steps_taken < 0 ? 1 : 0; // Richtung umkehren
-                stepper_step_n(&stepper_pan, stepper_pan.steps_taken, dir);
-            }
-            if (stepper_tilt.steps_taken != 0 && stepper_tilt.steps_remaining == 0)
-            {
-                bool dir = stepper_tilt.steps_taken < 0 ? 1 : 0;
-                stepper_step_n(&stepper_tilt, stepper_tilt.steps_taken, dir)
-            }
-
-            stepper_pan.steps_taken = 0;
-            stepper_tilt.steps_taken = 0;
+        if (joy[2] == 1) {
+            reset_stepper_position(&stepper_pan);
+            reset_stepper_position(&stepper_tilt);
         }
 
         usartPrint(

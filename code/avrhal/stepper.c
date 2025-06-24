@@ -162,6 +162,18 @@ uint8_t stepper_microstep_multiplier(MicrostepMode mode) {
     }
 }
 
+void reset_stepper_position(Stepper* stepper)
+{
+    int32_t steps = stepper->steps_taken;
+
+    if (steps == 0)
+        return; // Keine Bewegung nötig
+
+    bool direction = steps > 0 ? 0 : 1; // Umkehrung der Bewegungsrichtung
+
+    stepper_set_dir(stepper, direction);
+    stepper_step_n(stepper, abs(steps), direction);
+}
 
 
 
