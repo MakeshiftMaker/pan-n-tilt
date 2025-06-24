@@ -9,7 +9,9 @@
 typedef enum {
     STOP,
     LEFT,
-    RIGHT
+    RIGHT,
+    UP,
+    DOWN
 } Direction;
 
 Stepper stepper_pan = {
@@ -113,15 +115,15 @@ int main(void)
             case LEFT:
                 if (stepper_pan.steps_remaining == 0)
                 {
-                    stepper_set_dir(&stepper_pan, 0);
                     stepper_step_n(&stepper_pan, 1, 0);
+                    stepper_step_n(&stepper_tilt, 1, 1);
                 }
                 break;
             case RIGHT:
                 if (stepper_pan.steps_remaining == 0)
                 {
-                    stepper_set_dir(&stepper_pan, 1);
                     stepper_step_n(&stepper_pan, 1, 1);
+                    stepper_step_n(&stepper_tilt, 1, 1);
                 }
                 break;
             case STOP:
@@ -130,14 +132,14 @@ int main(void)
 
             switch (tilt_direction)
             {
-            case LEFT:
+            case UP:
                 if (stepper_tilt.steps_remaining == 0)
                 {
                     stepper_set_dir(&stepper_tilt, 0);
                     stepper_step_n(&stepper_tilt, 1, 0);
                 }
                 break;
-            case RIGHT:
+            case DOWN:
                 if (stepper_tilt.steps_remaining == 0)
                 {
                     stepper_set_dir(&stepper_tilt, 1);
