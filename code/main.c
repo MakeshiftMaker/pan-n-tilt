@@ -135,14 +135,12 @@ int main(void)
             case UP:
                 if (stepper_tilt.steps_remaining == 0)
                 {
-                    stepper_set_dir(&stepper_tilt, 0);
                     stepper_step_n(&stepper_tilt, 1, 0);
                 }
                 break;
             case DOWN:
                 if (stepper_tilt.steps_remaining == 0)
                 {
-                    stepper_set_dir(&stepper_tilt, 1);
                     stepper_step_n(&stepper_tilt, 1, 1);
                 }
                 break;
