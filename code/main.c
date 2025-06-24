@@ -110,30 +110,43 @@ int main(void)
         else
             tilt_direction = STOP;
 
-        switch (pan_direction)
+        if (stepper_tilt.steps_remaining == 0)
         {
-        case LEFT:
+            switch (Direction)
+            {
+            case LEFT:
                 stepper_step_n(&stepper_pan, 1, 0);
                 stepper_step_n(&stepper_tilt, 1, 0);
-            break;
-        case RIGHT:
+                break;
+            case RIGHT:
                 stepper_step_n(&stepper_pan, 1, 1);
                 stepper_step_n(&stepper_tilt, 1, 1);
-            break;
-        case STOP:
-            break;
+                break;
+            case UP:
+                stepper_step_n(&stepper_tilt, 1, 0);
+                break;
+            case DOWN:
+                stepper_step_n(&stepper_tilt, 1, 1);
+                break;
+            case STOP:
+                break;
+            }
         }
 
-        switch (tilt_direction)
-        {
-        case UP:
-                stepper_step_n(&stepper_tilt, 1, 0);
-            break;
-        case DOWN:
-                stepper_step_n(&stepper_tilt, 1, 1);
-            break;
-        case STOP:
-            break;
+        if (joy[2] == 1){
+            if (stepper_pan.steps_taken != 0 && stepper_pan.steps_remaining == 0)
+            {
+                bool dir = stepper_pan.steps_taken < 0 ? 1 : 0; // Richtung umkehren
+                stepper_step_n(&stepper_pan, stepper_pan.steps_taken, dir);
+            }
+            if (stepper_tilt.steps_taken != 0 && stepper_tilt.steps_remaining == 0)
+            {
+                bool dir = stepper_tilt.steps_taken < 0 ? 1 : 0;
+                stepper_step_n(&stepper_tilt, stepper_tilt.steps_taken, dir)
+            }
+
+            stepper_pan.steps_taken = 0;
+            stepper_tilt.steps_taken = 0;
         }
 
         usartPrint(
