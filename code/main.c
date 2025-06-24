@@ -103,6 +103,8 @@ int main(void)
             direction = RIGHT;
         else if (joy[1] > 700)
             direction = UP;
+        else if (joy[1] < 300)
+            direction = DOWN;
         else
             direction = STOP;
 
