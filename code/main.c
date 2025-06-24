@@ -3,10 +3,11 @@
 #include "avrhal/stepper.h"
 #include "utils/bit.h"
 #include "avrhal/joystick.h"
-#include "avrhal/usart.h" 
+#include "avrhal/usart.h"
 #include "avrhal/adc.h"
 
-typedef enum {
+typedef enum
+{
     STOP,
     LEFT,
     RIGHT,
@@ -83,7 +84,6 @@ int main(void)
     Direction pan_direction = STOP;
     Direction tilt_direction = STOP;
 
-
     while (1)
     {
         joystickRead(joy);
@@ -104,50 +104,37 @@ int main(void)
             pan_direction = STOP;
 
         if (joy[1] < 300)
-            tilt_direction = LEFT;
+            tilt_direction = DOWN;
         else if (joy[1] > 700)
-            tilt_direction = RIGHT;
+            tilt_direction = UP;
         else
             tilt_direction = STOP;
 
-            switch (pan_direction)
-            {
-            case LEFT:
-                if (stepper_pan.steps_remaining == 0)
-                {
-                    stepper_step_n(&stepper_pan, 1, 0);
-                    stepper_step_n(&stepper_tilt, 1, 1);
-                }
-                break;
-            case RIGHT:
-                if (stepper_pan.steps_remaining == 0)
-                {
-                    stepper_step_n(&stepper_pan, 1, 1);
-                    stepper_step_n(&stepper_tilt, 1, 1);
-                }
-                break;
-            case STOP:
-                break;
-            }
+        switch (pan_direction)
+        {
+        case LEFT:
+                stepper_step_n(&stepper_pan, 1, 0);
+                stepper_step_n(&stepper_tilt, 1, 0);
+            break;
+        case RIGHT:
+                stepper_step_n(&stepper_pan, 1, 1);
+                stepper_step_n(&stepper_tilt, 1, 1);
+            break;
+        case STOP:
+            break;
+        }
 
-            switch (tilt_direction)
-            {
-            case UP:
-                if (stepper_tilt.steps_remaining == 0)
-                {
-                    stepper_step_n(&stepper_tilt, 1, 0);
-                }
-                break;
-            case DOWN:
-                if (stepper_tilt.steps_remaining == 0)
-                {
-                    stepper_step_n(&stepper_tilt, 1, 1);
-                }
-                break;
-            case STOP:
-                break;
-            }
-
+        switch (tilt_direction)
+        {
+        case UP:
+                stepper_step_n(&stepper_tilt, 1, 0);
+            break;
+        case DOWN:
+                stepper_step_n(&stepper_tilt, 1, 1);
+            break;
+        case STOP:
+            break;
+        }
 
         usartPrint(
             "X: %4d, Y: %4d, B: %d | "
