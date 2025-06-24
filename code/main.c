@@ -3,7 +3,7 @@
 #include "avrhal/stepper.h"
 #include "utils/bit.h"
 #include "avrhal/joystick.h"
-#include "avrhal/usart.h" #
+#include "avrhal/usart.h" 
 #include "avrhal/adc.h"
 
 typedef enum {
@@ -78,6 +78,10 @@ int main(void)
     stepper_step_n(&stepper_pan, 200 * 3, 1);
     stepper_step_n(&stepper_tilt, 200 * 3, 1);
 
+    Direction pan_direction = STOP;
+    Direction tilt_direction = STOP;
+
+
     while (1)
     {
         joystickRead(joy);
@@ -98,11 +102,11 @@ int main(void)
             pan_direction = STOP;
 
         if (joy[1] < 300)
-            pan_direction = LEFT;
+            tilt_direction = LEFT;
         else if (joy[1] > 700)
-            pan_direction = RIGHT;
+            tilt_direction = RIGHT;
         else
-            pan_direction = STOP;
+            tilt_direction = STOP;
 
             switch (pan_direction)
             {
@@ -123,6 +127,27 @@ int main(void)
             case STOP:
                 break;
             }
+
+            switch (tilt_direction)
+            {
+            case LEFT:
+                if (stepper_tilt.steps_remaining == 0)
+                {
+                    stepper_set_dir(&stepper_tilt, 0);
+                    stepper_step_n(&stepper_tilt, 1, 0);
+                }
+                break;
+            case RIGHT:
+                if (stepper_tilt.steps_remaining == 0)
+                {
+                    stepper_set_dir(&stepper_tilt, 1);
+                    stepper_step_n(&stepper_tilt, 1, 1);
+                }
+                break;
+            case STOP:
+                break;
+            }
+
 
         usartPrint(
             "X: %4d, Y: %4d, B: %d | "
