@@ -164,7 +164,7 @@ uint8_t stepper_microstep_multiplier(MicrostepMode mode) {
 
 void stepper_reset_position(Stepper* stepper)
 {
-    int32_t steps = stepper->steps_taken;
+    int32_t steps = stepper->steps_taken/16;
 
     if (steps == 0)
         return; // Keine Bewegung nötig
