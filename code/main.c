@@ -59,8 +59,6 @@ Stepper stepper_pan = {
 
     .config_dirty = false};
 
-void stepper_reset_position(Stepper *stepper);
-
 int main(void)
 {
     usartSetup(USART_B9600, USART_CONFIG_8N1);
