@@ -75,7 +75,7 @@ int main(void)
     while (1)
     {
         joystickRead(joy);  
-        usartPrint("X: %4d | Y: %4d | Btn: %d | Pan: taken=%4ld, remaining=%4d | Tilt: taken=%4ld, remaining=%4d\r\n", joy[0], joy[1], joy[2], stepper_pan.steps_taken, stepper_pan.steps_remaining, stepper_tilt.steps_taken, stepper_tilt.steps_remaining);;
+        usartPrint("X: %4d | Y: %4d | Btn: %d | Pan: taken=%4ld, remaining=%4d | Tilt: taken=%4ld, remaining=%4d\r\n", joy[0], joy[1], joy[2], stepper_pan.steps_taken, stepper_pan.steps_remaining, stepper_tilt.steps_taken, stepper_tilt.steps_remaining);
         _delay_ms(100);  
     }
 
