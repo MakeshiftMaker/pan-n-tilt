@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-void joystickInit(void);
+void joystickSetup(void);
 void joystickRead(int16_t data[3]);
 
 #endif
