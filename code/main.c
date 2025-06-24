@@ -145,7 +145,7 @@ int main(void)
             stepper_tilt.steps_taken, stepper_tilt.steps_remaining, tilt_whole, tilt_frac);
 
         // usartPrint("Hello World \r\n");
-        _delay_ms(1000);
+        //_delay_ms(1000);
     }
 
     /*stepper_step_n(&stepper_pan, 200*3, 0);
