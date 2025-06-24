@@ -59,6 +59,8 @@ Stepper stepper_tilt = {
 
     .config_dirty = false};
 
+void stepper_reset_position(Stepper *stepper);
+
 int main(void)
 {
     usartSetup(USART_B9600, USART_CONFIG_8N1);
@@ -81,9 +83,7 @@ int main(void)
     stepper_step_n(&stepper_pan, 200 * 3, 1);
     stepper_step_n(&stepper_tilt, 200 * 3, 1);
 
-    Direction pan_direction = STOP;
-    Direction tilt_direction = STOP;
-
+    Direction direction = STOP;
 
     while (1)
     {
@@ -98,22 +98,17 @@ int main(void)
         int tilt_frac = (int)((tilt_deg - tilt_whole) * 100);
 
         if (joy[0] < 300)
-            pan_direction = LEFT;
+            direction = LEFT;
         else if (joy[0] > 700)
-            pan_direction = RIGHT;
-        else
-            pan_direction = STOP;
-
-        if (joy[1] < 300)
-            tilt_direction = DOWN;
+            direction = RIGHT;
         else if (joy[1] > 700)
-            tilt_direction = UP;
+            direction = UP;
         else
-            tilt_direction = STOP;
+            direction = STOP;
 
-        if (stepper_tilt.steps_remaining == 0)
+        if (stepper_tilt.steps_remaining == 0 || stepper_pan.steps_remaining == 0)
         {
-            switch (Direction)
+            switch (direction)
             {
             case LEFT:
                 stepper_step_n(&stepper_pan, 1, 0);
@@ -134,9 +129,10 @@ int main(void)
             }
         }
 
-        if (joy[2] == 1) {
-            reset_stepper_position(&stepper_pan);
-            reset_stepper_position(&stepper_tilt);
+        if (joy[2] == 1)
+        {
+            stepper_reset_position(&stepper_pan);
+            stepper_reset_position(&stepper_tilt);
         }
 
         usartPrint(

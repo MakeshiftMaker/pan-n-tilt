@@ -58,5 +58,6 @@ void stepper_heartbeat_disable();
 
 //stepper control
 void stepper_step_n(Stepper* stepper, int steps, bool dir);
+void stepper_reset_position(Stepper* stepper);
 
 #endif
