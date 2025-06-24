@@ -2,6 +2,9 @@
 #include <util/delay.h>
 #include "avrhal/stepper.h"
 #include "utils/bit.h"
+#include "avrhal/joystick.h"
+#include "avrhal/usart.h"#
+#include "avrhal/adc.h"
 
 Stepper stepper_pan = {
     .ddr = &DDRB,
@@ -49,11 +52,14 @@ Stepper stepper_tilt = {
 
 int main(void)
 {
+    joystickSetup();
+
     sei();
+    int16_t joy[3];
 
     stepper_setup(&stepper_pan);
     stepper_setup(&stepper_tilt);
-    stepper_heartbeat_setup(50);
+    stepper_heartbeat_setup(100);
 
     stepper_set_disable(&stepper_pan, false);
     stepper_set_disable(&stepper_tilt, false);
@@ -65,14 +71,19 @@ int main(void)
     stepper_step_n(&stepper_pan, 200*3, 1);
     stepper_step_n(&stepper_tilt, 200*3, 1);
 
-    while (stepper_pan.steps_remaining > 0 || stepper_tilt.steps_remaining > 0)
-        ;
+    while (1)
+    {
+        joystickRead(joy);  
+        usartPrint("X: %4d | Y: %4d | Btn: %d | Pan: taken=%4ld, remaining=%4d | Tilt: taken=%4ld, remaining=%4d\r\n", joy[0], joy[1], joy[2], stepper_pan.steps_taken, stepper_pan.steps_remaining, stepper_tilt.steps_taken, stepper_tilt.steps_remaining);;
+        _delay_ms(100);  
+    }
 
-    stepper_step_n(&stepper_pan, 200*3, 0);
+    /*stepper_step_n(&stepper_pan, 200*3, 0);
     stepper_step_n(&stepper_tilt, 200*3, 0);
 
     while (stepper_pan.steps_remaining > 0 || stepper_tilt.steps_remaining > 0)
         ;
+    */
 
     return 0;
 }
