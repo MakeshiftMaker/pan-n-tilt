@@ -161,9 +161,9 @@ ISR(TIMER1_COMPA_vect)
 { // toggle step pins
     if (stepper_pan.steps_remaining > 0)
     {
-        BIT_TOGGLE(*(stepper_pan.port), stepper_pan.step_pin); // Toggle PB1 (Pan)
+        BIT_SET(*(stepper_pan.port), stepper_pan.step_pin); // Toggle PB1 (Pan)
         _delay_us(1);
-        BIT_TOGGLE(*(stepper_pan.port), stepper_pan.step_pin); // Toggle PB1 (Pan)
+        BIT_CLR(*(stepper_pan.port), stepper_pan.step_pin); // Toggle PB1 (Pan)
         _delay_us(1);
         stepper_pan.steps_remaining--;
 
@@ -173,9 +173,9 @@ ISR(TIMER1_COMPA_vect)
 
     if (stepper_tilt.steps_remaining > 0)
     {
-        BIT_TOGGLE(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
+        BIT_SET(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
         _delay_us(1);
-        BIT_TOGGLE(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
+        BIT_CLR(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
         _delay_us(1);
         stepper_tilt.steps_remaining--;
 
