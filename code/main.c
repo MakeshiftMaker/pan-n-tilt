@@ -15,7 +15,7 @@ typedef enum
     DOWN
 } Direction;
 
-Stepper stepper_pan = {
+Stepper stepper_tilt = {
     .ddr = &DDRB,
     .port = &PORTB,
     .step_pin = PB6,
@@ -38,7 +38,7 @@ Stepper stepper_pan = {
 
 };
 
-Stepper stepper_tilt = {
+Stepper stepper_pan = {
     .ddr = &DDRD,
     .port = &PORTD,
     .step_pin = PD6,
