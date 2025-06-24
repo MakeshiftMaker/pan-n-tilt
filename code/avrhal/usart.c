@@ -84,7 +84,7 @@ uint8_t usartWriteString(const char* str)
 
 uint8_t usartPrint(const char* format, ...)
 {
-    const uint8_t bufferSize = 64;
+    const uint8_t bufferSize = 255;
     char buffer[bufferSize];
 
     /* Initialize buffer with zero-length string, in case vsnprintf() fails */

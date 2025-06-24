@@ -3,7 +3,7 @@
 #include "avrhal/stepper.h"
 #include "utils/bit.h"
 #include "avrhal/joystick.h"
-#include "avrhal/usart.h"#
+#include "avrhal/usart.h" #
 #include "avrhal/adc.h"
 
 Stepper stepper_pan = {
@@ -69,14 +69,31 @@ int main(void)
 
     stepper_heartbeat_enable();
 
-    stepper_step_n(&stepper_pan, 200*3, 1);
-    stepper_step_n(&stepper_tilt, 200*3, 1);
+    stepper_step_n(&stepper_pan, 200 * 3, 1);
+    stepper_step_n(&stepper_tilt, 200 * 3, 1);
 
     while (1)
     {
-        joystickRead(joy);  
-        usartPrint("X: %4d | Y: %4d | Btn: %d | Pan: taken=%4ld, remaining=%4d | Tilt: taken=%4ld, remaining=%4d\r\n", joy[0], joy[1], joy[2], stepper_pan.steps_taken, stepper_pan.steps_remaining, stepper_tilt.steps_taken, stepper_tilt.steps_remaining);
-        _delay_ms(100);  
+        joystickRead(joy);
+        float pan_deg = (stepper_pan.steps_taken / 16.0) * 1.8;
+        float tilt_deg = (stepper_tilt.steps_taken / 16.0) * 1.8;
+
+        int pan_whole = (int)pan_deg;
+        int pan_frac = (int)((pan_deg - pan_whole) * 100);
+
+        int tilt_whole = (int)tilt_deg;
+        int tilt_frac = (int)((tilt_deg - tilt_whole) * 100);
+
+        usartPrint(
+            "X: %4d, Y: %4d, B: %d | "
+            "P: t=%4ld, r=%4d, d=%3d.%02d | "
+            "T: t=%4ld, r=%4d, d=%3d.%02d\r\n",
+            joy[0], joy[1], joy[2],
+            stepper_pan.steps_taken, stepper_pan.steps_remaining, pan_whole, pan_frac,
+            stepper_tilt.steps_taken, stepper_tilt.steps_remaining, tilt_whole, tilt_frac);
+
+        // usartPrint("Hello World \r\n");
+        _delay_ms(1000);
     }
 
     /*stepper_step_n(&stepper_pan, 200*3, 0);
@@ -98,7 +115,7 @@ ISR(TIMER1_COMPA_vect)
         BIT_TOGGLE(*(stepper_pan.port), stepper_pan.step_pin); // Toggle PB1 (Pan)
         _delay_us(1);
         stepper_pan.steps_remaining--;
-        
+
         int8_t step_direction = stepper_pan.dir ? 1 : -1;
         stepper_pan.steps_taken += step_direction * stepper_microstep_multiplier(stepper_pan.microstep_mode);
     }
@@ -110,7 +127,7 @@ ISR(TIMER1_COMPA_vect)
         BIT_TOGGLE(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
         _delay_us(1);
         stepper_tilt.steps_remaining--;
-        
+
         int8_t step_direction = stepper_tilt.dir ? 1 : -1;
         stepper_tilt.steps_taken += step_direction * stepper_microstep_multiplier(stepper_tilt.microstep_mode);
     }
