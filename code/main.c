@@ -52,6 +52,7 @@ Stepper stepper_tilt = {
 
 int main(void)
 {
+    usartSetup(USART_B9600, USART_CONFIG_8N1);
     joystickSetup();
 
     sei();
