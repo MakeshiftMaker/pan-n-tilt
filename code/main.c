@@ -15,7 +15,7 @@ typedef enum
     DOWN
 } Direction;
 
-Stepper stepper_pan = {
+Stepper stepper_tilt = {
     .ddr = &DDRB,
     .port = &PORTB,
     .step_pin = PB6,
@@ -39,7 +39,7 @@ Stepper stepper_pan = {
 
 };
 
-Stepper stepper_tilt = {
+Stepper stepper_pan = {
     .ddr = &DDRD,
     .port = &PORTD,
     .step_pin = PD6,
@@ -63,7 +63,7 @@ Stepper stepper_tilt = {
 
 int main(void)
 {
-    usartSetup(USART_B9600, USART_CONFIG_8N1);
+    //usartSetup(USART_B9600, USART_CONFIG_8N1);
     joystickSetup();
 
     sei();
@@ -81,12 +81,15 @@ int main(void)
     stepper_heartbeat_enable();
 
     stepper_step_n(&stepper_pan, 200 * 3, 1);
-    while (stepper_pan.steps_remaining > 0)
-        ;
+    
     stepper_step_n(&stepper_tilt, 200 * 3, 1);
+
+    while (stepper_pan.steps_remaining > 0 && stepper_tilt.steps_remaining > 0)
+        ;
 
     Direction direction = STOP;
 
+    
     while (1)
     {
         joystickRead(joy);
@@ -141,6 +144,7 @@ int main(void)
         }
         prev_button = joy[2];
 
+        
         usartPrint(
             "X: %4d, Y: %4d, B: %d | "
             "P: taken=%4ld, remaining=%d, degrees=%d.%02d | "
@@ -148,17 +152,9 @@ int main(void)
             joy[0], joy[1], joy[2],
             stepper_pan.steps_taken, stepper_pan.steps_remaining, pan_whole, pan_frac,
             stepper_tilt.steps_taken, stepper_tilt.steps_remaining, tilt_whole, tilt_frac);
-
-        // usartPrint("Hello World \r\n");
-        //_delay_ms(1000);
+        
+        
     }
-
-    /*stepper_step_n(&stepper_pan, 200*3, 0);
-    stepper_step_n(&stepper_tilt, 200*3, 0);
-
-    while (stepper_pan.steps_remaining > 0 || stepper_tilt.steps_remaining > 0)
-        ;
-    */
 
     return 0;
 }
@@ -201,49 +197,47 @@ ISR(TIMER1_COMPA_vect)
         stepper_pan.steps_taken += step_direction * stepper_microstep_multiplier(stepper_pan.microstep_mode);
     }
 
-    
-    
-   /*
-    // PAN
-    if (stepper_pan.steps_remaining > 0)
-    {
-        if (!stepper_pan.step_pin_state)
-        {
-            // Set pin HIGH
-            BIT_SET(*(stepper_pan.port), stepper_pan.step_pin);
-            stepper_pan.step_pin_state = true;
-        }
-        else
-        {
-            // Set pin LOW, update counters
-            BIT_CLR(*(stepper_pan.port), stepper_pan.step_pin);
-            stepper_pan.step_pin_state = false;
+    /*
+     // PAN
+     if (stepper_pan.steps_remaining > 0)
+     {
+         if (!stepper_pan.step_pin_state)
+         {
+             // Set pin HIGH
+             BIT_SET(*(stepper_pan.port), stepper_pan.step_pin);
+             stepper_pan.step_pin_state = true;
+         }
+         else
+         {
+             // Set pin LOW, update counters
+             BIT_CLR(*(stepper_pan.port), stepper_pan.step_pin);
+             stepper_pan.step_pin_state = false;
 
-            stepper_pan.steps_remaining--;
-            int8_t step_direction = stepper_pan.dir ? 1 : -1;
-            stepper_pan.steps_taken += step_direction * stepper_microstep_multiplier(stepper_pan.microstep_mode);
-        }
-    }
+             stepper_pan.steps_remaining--;
+             int8_t step_direction = stepper_pan.dir ? 1 : -1;
+             stepper_pan.steps_taken += step_direction * stepper_microstep_multiplier(stepper_pan.microstep_mode);
+         }
+     }
 
-    // TILT
-    if (stepper_tilt.steps_remaining > 0)
-    {
-        if (!stepper_tilt.step_pin_state)
-        {
-            // Set pin HIGH
-            BIT_SET(*(stepper_tilt.port), stepper_tilt.step_pin);
-            stepper_tilt.step_pin_state = true;
-        }
-        else
-        {
-            // Set pin LOW, update counters
-            BIT_CLR(*(stepper_tilt.port), stepper_tilt.step_pin);
-            stepper_tilt.step_pin_state = false;
+     // TILT
+     if (stepper_tilt.steps_remaining > 0)
+     {
+         if (!stepper_tilt.step_pin_state)
+         {
+             // Set pin HIGH
+             BIT_SET(*(stepper_tilt.port), stepper_tilt.step_pin);
+             stepper_tilt.step_pin_state = true;
+         }
+         else
+         {
+             // Set pin LOW, update counters
+             BIT_CLR(*(stepper_tilt.port), stepper_tilt.step_pin);
+             stepper_tilt.step_pin_state = false;
 
-            stepper_tilt.steps_remaining--;
-            int8_t step_direction = stepper_tilt.dir ? 1 : -1;
-            stepper_tilt.steps_taken += step_direction * stepper_microstep_multiplier(stepper_tilt.microstep_mode);
-        }
-    }
-    */
+             stepper_tilt.steps_remaining--;
+             int8_t step_direction = stepper_tilt.dir ? 1 : -1;
+             stepper_tilt.steps_taken += step_direction * stepper_microstep_multiplier(stepper_tilt.microstep_mode);
+         }
+     }
+     */
 }
