@@ -106,7 +106,7 @@ int main(void)
         else
             direction = STOP;
 
-        if (stepper_tilt.steps_remaining == 0 || stepper_pan.steps_remaining == 0)
+        if (stepper_tilt.steps_remaining == 0 && stepper_pan.steps_remaining == 0)
         {
             switch (direction)
             {
@@ -129,16 +129,18 @@ int main(void)
             }
         }
 
-        if (joy[2] == 1)
+        static int prev_button = 0;
+        if (joy[2] == 1 && prev_button == 0)
         {
             stepper_reset_position(&stepper_pan);
             stepper_reset_position(&stepper_tilt);
         }
+        prev_button = joy[2];
 
         usartPrint(
             "X: %4d, Y: %4d, B: %d | "
-            "P: t=%4ld, r=%4d, d=%3d.%02d | "
-            "T: t=%4ld, r=%4d, d=%3d.%02d\r\n",
+            "P: taken=%4ld, remaining=%d, degrees=%d.%02d | "
+            "T: taken=%4ld, remaining=%d, degrees=%d.%02d\r\n",
             joy[0], joy[1], joy[2],
             stepper_pan.steps_taken, stepper_pan.steps_remaining, pan_whole, pan_frac,
             stepper_tilt.steps_taken, stepper_tilt.steps_remaining, tilt_whole, tilt_frac);
@@ -159,6 +161,16 @@ int main(void)
 
 ISR(TIMER1_COMPA_vect)
 { // toggle step pins
+    if (stepper_pan.steps_remaining < 0)
+    {
+        stepper_pan.steps_remaining = 0;
+        return;
+    }
+    if (stepper_tilt.steps_remaining < 0)
+    {
+        stepper_tilt.steps_remaining = 0;
+        return;
+    }
     if (stepper_pan.steps_remaining > 0)
     {
         BIT_SET(*(stepper_pan.port), stepper_pan.step_pin); // Toggle PB1 (Pan)

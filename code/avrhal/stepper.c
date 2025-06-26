@@ -167,13 +167,28 @@ void stepper_reset_position(Stepper* stepper)
     int32_t steps = stepper->steps_taken/16;
 
     if (steps == 0)
+        return;
+
+    bool direction = steps > 0 ? 0 : 1; // Reverse direction
+    int32_t abs_steps = steps > 0 ? steps : -steps;
+
+    stepper_step_n(stepper, abs_steps, direction);
+    stepper->steps_taken = 0;  // Reset to zero here to avoid re-triggering
+}
+
+/*
+void stepper_reset_position(Stepper* stepper)
+{
+    int32_t steps = stepper->steps_taken;
+
+    if (steps == 0)
         return; // Keine Bewegung nötig
 
     bool direction = steps > 0 ? 0 : 1; // Umkehrung der Bewegungsrichtung
 
     stepper_step_n(stepper, steps, direction);
 }
-
+*/
 
 
 
