@@ -29,6 +29,7 @@ typedef struct
 
     volatile int32_t steps_taken; //in 1/16 steps
     volatile uint16_t steps_remaining;
+    volatile bool step_pin_state;
 
     // Configuration shadow state
     volatile bool disable; // Desired state of enable pin (false = enable motor)

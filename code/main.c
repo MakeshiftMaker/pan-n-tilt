@@ -15,7 +15,7 @@ typedef enum
     DOWN
 } Direction;
 
-Stepper stepper_tilt = {
+Stepper stepper_pan = {
     .ddr = &DDRB,
     .port = &PORTB,
     .step_pin = PB6,
@@ -29,6 +29,7 @@ Stepper stepper_tilt = {
 
     .steps_taken = 0,
     .steps_remaining = 0,
+    .step_pin_state = 0,
 
     .disable = false,
     .dir = false,
@@ -38,7 +39,7 @@ Stepper stepper_tilt = {
 
 };
 
-Stepper stepper_pan = {
+Stepper stepper_tilt = {
     .ddr = &DDRD,
     .port = &PORTD,
     .step_pin = PD6,
@@ -52,6 +53,7 @@ Stepper stepper_pan = {
 
     .steps_taken = 0,
     .steps_remaining = 0,
+    .step_pin_state = 0,
 
     .disable = false,
     .dir = false,
@@ -79,6 +81,8 @@ int main(void)
     stepper_heartbeat_enable();
 
     stepper_step_n(&stepper_pan, 200 * 3, 1);
+    while (stepper_pan.steps_remaining > 0)
+        ;
     stepper_step_n(&stepper_tilt, 200 * 3, 1);
 
     Direction direction = STOP;
@@ -161,37 +165,85 @@ int main(void)
 
 ISR(TIMER1_COMPA_vect)
 { // toggle step pins
+    /*
     if (stepper_pan.steps_remaining < 0)
     {
         stepper_pan.steps_remaining = 0;
-        return;
+        //return;
     }
     if (stepper_tilt.steps_remaining < 0)
     {
         stepper_tilt.steps_remaining = 0;
-        return;
+        //return;
     }
+    */
+    if (stepper_tilt.steps_remaining > 0)
+    {
+        BIT_SET(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
+        _delay_us(1);
+        BIT_CLR(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
+        //_delay_us(1);
+        stepper_tilt.steps_remaining--;
+
+        int8_t step_direction = stepper_tilt.dir ? 1 : -1;
+        stepper_tilt.steps_taken += step_direction * stepper_microstep_multiplier(stepper_tilt.microstep_mode);
+    }
+
     if (stepper_pan.steps_remaining > 0)
     {
         BIT_SET(*(stepper_pan.port), stepper_pan.step_pin); // Toggle PB1 (Pan)
         _delay_us(1);
         BIT_CLR(*(stepper_pan.port), stepper_pan.step_pin); // Toggle PB1 (Pan)
-        _delay_us(1);
+        //_delay_us(1);
         stepper_pan.steps_remaining--;
 
         int8_t step_direction = stepper_pan.dir ? 1 : -1;
         stepper_pan.steps_taken += step_direction * stepper_microstep_multiplier(stepper_pan.microstep_mode);
     }
 
+    
+    
+   /*
+    // PAN
+    if (stepper_pan.steps_remaining > 0)
+    {
+        if (!stepper_pan.step_pin_state)
+        {
+            // Set pin HIGH
+            BIT_SET(*(stepper_pan.port), stepper_pan.step_pin);
+            stepper_pan.step_pin_state = true;
+        }
+        else
+        {
+            // Set pin LOW, update counters
+            BIT_CLR(*(stepper_pan.port), stepper_pan.step_pin);
+            stepper_pan.step_pin_state = false;
+
+            stepper_pan.steps_remaining--;
+            int8_t step_direction = stepper_pan.dir ? 1 : -1;
+            stepper_pan.steps_taken += step_direction * stepper_microstep_multiplier(stepper_pan.microstep_mode);
+        }
+    }
+
+    // TILT
     if (stepper_tilt.steps_remaining > 0)
     {
-        BIT_SET(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
-        _delay_us(1);
-        BIT_CLR(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
-        _delay_us(1);
-        stepper_tilt.steps_remaining--;
+        if (!stepper_tilt.step_pin_state)
+        {
+            // Set pin HIGH
+            BIT_SET(*(stepper_tilt.port), stepper_tilt.step_pin);
+            stepper_tilt.step_pin_state = true;
+        }
+        else
+        {
+            // Set pin LOW, update counters
+            BIT_CLR(*(stepper_tilt.port), stepper_tilt.step_pin);
+            stepper_tilt.step_pin_state = false;
 
-        int8_t step_direction = stepper_tilt.dir ? 1 : -1;
-        stepper_tilt.steps_taken += step_direction * stepper_microstep_multiplier(stepper_tilt.microstep_mode);
+            stepper_tilt.steps_remaining--;
+            int8_t step_direction = stepper_tilt.dir ? 1 : -1;
+            stepper_tilt.steps_taken += step_direction * stepper_microstep_multiplier(stepper_tilt.microstep_mode);
+        }
     }
+    */
 }
