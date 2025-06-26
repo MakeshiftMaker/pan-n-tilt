@@ -15,7 +15,7 @@
 #include <util/atomic.h>
 #include <util/delay.h>
 
-#define TX_BUF_SIZE 255
+#define TX_BUF_SIZE 64
 
 static uint8_t txBuffer[TX_BUF_SIZE] = { 0 };
 static volatile uint8_t txLength = 0;

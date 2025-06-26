@@ -63,11 +63,13 @@ Stepper stepper_pan = {
 
 int main(void)
 {
-    //usartSetup(USART_B9600, USART_CONFIG_8N1);
+
     joystickSetup();
 
     sei();
     int16_t joy[3];
+
+    usartSetup(USART_B9600, USART_CONFIG_8N1);
 
     stepper_setup(&stepper_pan);
     stepper_setup(&stepper_tilt);
@@ -81,7 +83,6 @@ int main(void)
     stepper_heartbeat_enable();
 
     stepper_step_n(&stepper_pan, 200 * 3, 1);
-    
     stepper_step_n(&stepper_tilt, 200 * 3, 1);
 
     while (stepper_pan.steps_remaining > 0 && stepper_tilt.steps_remaining > 0)
@@ -89,7 +90,6 @@ int main(void)
 
     Direction direction = STOP;
 
-    
     while (1)
     {
         joystickRead(joy);
@@ -144,16 +144,19 @@ int main(void)
         }
         prev_button = joy[2];
 
-        
-        usartPrint(
-            "X: %4d, Y: %4d, B: %d | "
-            "P: taken=%4ld, remaining=%d, degrees=%d.%02d | "
-            "T: taken=%4ld, remaining=%d, degrees=%d.%02d\r\n",
-            joy[0], joy[1], joy[2],
-            stepper_pan.steps_taken, stepper_pan.steps_remaining, pan_whole, pan_frac,
-            stepper_tilt.steps_taken, stepper_tilt.steps_remaining, tilt_whole, tilt_frac);
-        
-        
+        uint8_t pd0_val = (PIND & (1 << PD0)) ? 1 : 0;
+        uint8_t pd1_val = (PIND & (1 << PD1)) ? 1 : 0;
+
+        usartPrint("PD0 (RXD): %d, PD1 (TXD): %d\r\n", pd0_val, pd1_val);
+        usartPrint("test\r\n");
+        /*
+        const char *dir_str[] = {"S", "L", "R", "U", "D"};
+        usartPrint("D:%s P:%ld/%d T:%ld/%d p:%d t:%d\r\n",
+                   dir_str[direction],
+                   stepper_pan.steps_taken, stepper_pan.steps_remaining,
+                   stepper_tilt.steps_taken, stepper_tilt.steps_remaining,
+                   pan_whole, tilt_whole);
+        */
     }
 
     return 0;
