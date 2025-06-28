@@ -1,0 +1,6 @@
+PB0 -> Tilt Dir
+PB1 -> Pan Dir
+PB2 -> Tilt Enable
+PB3 -> Pan Enable
+
+all microstepping modes are grounded to full step mode

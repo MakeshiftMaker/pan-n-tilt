@@ -1,6 +1,6 @@
 /**
-* @Authors: Mic Lab Team
-*/
+ * @Authors: Mic Lab Team
+ */
 
 #include "usart.h"
 #include "utils/bit.h"
@@ -15,9 +15,14 @@
 #include <util/atomic.h>
 #include <util/delay.h>
 
-#define TX_BUF_SIZE 64
+#define TX_BUF_SIZE 255
+#define RX_BUF_SIZE 64
 
-static uint8_t txBuffer[TX_BUF_SIZE] = { 0 };
+static volatile uint8_t rxBuffer[RX_BUF_SIZE] = {0};
+static volatile uint8_t rxHead = 0;
+static volatile uint8_t rxTail = 0;
+
+static uint8_t txBuffer[TX_BUF_SIZE] = {0};
 static volatile uint8_t txLength = 0;
 static volatile uint8_t txPos = 0;
 
@@ -40,18 +45,21 @@ void usartResetTransmission()
 
 ISR(USART_UDRE_vect)
 {
-    if (txPos < txLength) {
+    if (txPos < txLength)
+    {
         UDR = txBuffer[txPos];
         txPos++;
-
-    } else {
+    }
+    else
+    {
         usartResetTransmission();
     }
 }
 
 void usartSetup(UsartBaudrate baud, UsartConfig config)
 {
-    if (config != USART_CONFIG_8N1) {
+    if (config != USART_CONFIG_8N1)
+    {
         return; /* Unsupported */
     }
     UCSRC = BIT(URSEL) | BIT(UCSZ0) | BIT(UCSZ1);
@@ -61,17 +69,21 @@ void usartSetup(UsartBaudrate baud, UsartConfig config)
     UBRRH = (ubrrValue << 8) & 0xFF;
 
     BIT_SET(UCSRB, TXEN);
+    BIT_SET(UCSRB, RXEN);
+    BIT_SET(UCSRB, RXCIE);
 }
 
-uint8_t usartWriteString(const char* str)
+uint8_t usartWriteString(const char *str)
 {
-    if (txLength != 0) {
+    if (txLength != 0)
+    {
         return 0; /* busy */
     }
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {
         uint16_t i = 0;
-        for (i = 0; i < TX_BUF_SIZE && str[i] != '\0'; i++) {
+        for (i = 0; i < TX_BUF_SIZE && str[i] != '\0'; i++)
+        {
 
             txBuffer[i] = str[i];
         }
@@ -82,9 +94,9 @@ uint8_t usartWriteString(const char* str)
     return txLength;
 }
 
-uint8_t usartPrint(const char* format, ...)
+uint8_t usartPrint(const char *format, ...)
 {
-    const uint8_t bufferSize = 64;
+    const uint8_t bufferSize = 255;
     char buffer[bufferSize];
 
     /* Initialize buffer with zero-length string, in case vsnprintf() fails */
@@ -96,4 +108,62 @@ uint8_t usartPrint(const char* format, ...)
     va_end(args);
 
     return usartWriteString(buffer);
+}
+
+bool usartReadLine(char *out, uint8_t maxLength)
+{
+    static char lineBuf[64];
+    static uint8_t lineIndex = 0;
+
+    while (rxTail != rxHead)
+    {
+        char c = rxBuffer[rxTail];
+        rxTail = (rxTail + 1) % RX_BUF_SIZE;
+
+        if (c == '\r')  // Your chosen terminator
+        {
+            if (lineIndex > 0)
+            {
+                // Proper termination
+                lineBuf[lineIndex] = '\0';
+                
+                // Ensure we don't overflow the output
+                strncpy(out, lineBuf, maxLength - 1);
+                out[maxLength - 1] = '\0';  // Always null-terminate
+
+                lineIndex = 0; // reset for next line
+                return true;
+            }
+            else
+            {
+                continue; // ignore empty lines
+            }
+        }
+        else if (lineIndex < sizeof(lineBuf) - 1)
+        {
+            lineBuf[lineIndex++] = c;
+        }
+        // else: silently ignore overflow
+    }
+
+    return false;
+}
+
+
+
+
+ISR(USART_RXC_vect)
+{
+    uint8_t data = UDR;
+    uint8_t nextHead = (rxHead + 1) % RX_BUF_SIZE;
+
+    // Echo typed character (optional)
+    //usartWriteString((char[]){data, '\0'});
+
+    if (nextHead != rxTail)
+    {
+        rxBuffer[rxHead] = data;
+        rxHead = nextHead;
+    }
+    // else: Buffer overflow, data lost
 }

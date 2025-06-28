@@ -15,6 +15,15 @@ static inline uint8_t absInt8(int8_t val)
     return val;
 }
 
+static inline uint16_t absInt16(int16_t val)
+{
+    if (val < 0) {
+        return -val;
+    }
+    return val;
+}
+
+
 static inline int8_t signInt8(int8_t val)
 {
     if (val < 0) {

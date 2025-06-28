@@ -32,4 +32,6 @@ uint8_t usartWriteString(const char* str);
 */
 uint8_t usartPrint(const char* format, ...);
 
+bool usartReadLine(char *out, uint8_t maxLength);
+
 #endif

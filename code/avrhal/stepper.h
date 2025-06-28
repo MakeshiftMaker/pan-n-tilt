@@ -18,14 +18,16 @@ typedef struct
 {
     volatile uint8_t *ddr;
     volatile uint8_t *port;
-    const uint8_t step_pin;
+    //const uint8_t step_pin;
     const uint8_t dir_pin;
     const uint8_t en_pin;
+    /*
     const uint8_t ms1_pin;
     const uint8_t ms2_pin;
     const uint8_t ms3_pin;
     const uint8_t rst_pin;
     const uint8_t slp_pin;
+    */
 
     volatile int32_t steps_taken; //in 1/16 steps
     volatile uint16_t steps_remaining;
@@ -54,11 +56,17 @@ uint8_t stepper_microstep_multiplier(MicrostepMode mode);
 
 // Heartbeat timer control
 void stepper_heartbeat_setup(int f);
+void stepper_set_heartbeat(int f);
 void stepper_heartbeat_enable();
 void stepper_heartbeat_disable();
 
 //stepper control
 void stepper_step_n(Stepper* stepper, int steps, bool dir);
 void stepper_reset_position(Stepper* stepper);
+void stepper_goto_position(Stepper* pan, Stepper* tilt, int target_pan_deg, int target_tilt_deg);
+
+//getter
+void stepper_get_angles(const Stepper* pan, const Stepper* tilt, int angles[4]);
+int calculate_heartbeat_frequency(uint16_t pan_steps, uint16_t tilt_steps, uint8_t min_freq, uint8_t max_freq);
 
 #endif

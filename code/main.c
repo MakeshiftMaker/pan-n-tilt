@@ -5,130 +5,141 @@
 #include "avrhal/joystick.h"
 #include "avrhal/usart.h"
 #include "avrhal/adc.h"
-
-typedef enum
-{
-    STOP,
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN
-} Direction;
+#include "utils/math.h"
+#include "avrhal/commandParser.h"
 
 Stepper stepper_tilt = {
     .ddr = &DDRB,
     .port = &PORTB,
-    .step_pin = PB6,
-    .dir_pin = PB7,
-    .en_pin = PB0,
+    //.step_pin = PB6,
+    .dir_pin = PB0,
+    .en_pin = PB2,
+    /*
     .ms1_pin = PB1,
     .ms2_pin = PB2,
     .ms3_pin = PB3,
     .rst_pin = PB4,
     .slp_pin = PB5,
-
+    */
     .steps_taken = 0,
     .steps_remaining = 0,
     .step_pin_state = 0,
 
     .disable = false,
     .dir = false,
-    .microstep_mode = MICROSTEP_FULL,
+    //.microstep_mode = MICROSTEP_FULL,
 
     .config_dirty = false
 
 };
 
 Stepper stepper_pan = {
-    .ddr = &DDRD,
-    .port = &PORTD,
-    .step_pin = PD6,
-    .dir_pin = PD7,
-    .en_pin = PD0,
+    .ddr = &DDRB,
+    .port = &PORTB,
+    //.step_pin = PD6,
+    .dir_pin = PB1,
+    .en_pin = PB3,
+    /*
     .ms1_pin = PD1,
     .ms2_pin = PD2,
     .ms3_pin = PD3,
     .rst_pin = PD4,
     .slp_pin = PD5,
-
+    */
     .steps_taken = 0,
     .steps_remaining = 0,
     .step_pin_state = 0,
 
     .disable = false,
     .dir = false,
-    .microstep_mode = MICROSTEP_FULL,
+    //.microstep_mode = MICROSTEP_FULL,
 
     .config_dirty = false};
 
 int main(void)
 {
-
-    joystickSetup();
-
+    // enable interrupt
     sei();
+
+    // joystick
+    joystickSetup();
     int16_t joy[3];
+    Direction direction = STOP;
 
-    usartSetup(USART_B9600, USART_CONFIG_8N1);
-
+    // steppers
     stepper_setup(&stepper_pan);
     stepper_setup(&stepper_tilt);
-    stepper_heartbeat_setup(100);
-
-    stepper_set_disable(&stepper_pan, false);
-    stepper_set_disable(&stepper_tilt, false);
-    stepper_apply_config(&stepper_pan);
-    stepper_apply_config(&stepper_tilt);
-
+    stepper_heartbeat_setup(200);
     stepper_heartbeat_enable();
 
-    stepper_step_n(&stepper_pan, 200 * 3, 1);
-    stepper_step_n(&stepper_tilt, 200 * 3, 1);
+    // int16_t max_offset;
+    int freq = 0;
+    int angles[4];
 
-    while (stepper_pan.steps_remaining > 0 && stepper_tilt.steps_remaining > 0)
-        ;
+    // usart setup
+    usartSetup(USART_B9600, USART_CONFIG_8N1);
 
-    Direction direction = STOP;
+    
+
+    // stepper_step_n(&stepper_pan, 200 * 3, 1);
+    // stepper_step_n(&stepper_tilt, 200 * 3, 1);
 
     while (1)
     {
+        commandParserPoll(&stepper_pan, &stepper_tilt);
+
         joystickRead(joy);
-        float pan_deg = (stepper_pan.steps_taken / 16.0) * 1.8;
-        float tilt_deg = (stepper_tilt.steps_taken / 16.0) * 1.8;
+        int16_t x_offset = joy[0] - 510;
+        int16_t y_offset = joy[1] - 495;
 
-        int pan_whole = (int)pan_deg;
-        int pan_frac = (int)((pan_deg - pan_whole) * 100);
+        stepper_get_angles(&stepper_pan, &stepper_tilt, angles);
 
-        int tilt_whole = (int)tilt_deg;
-        int tilt_frac = (int)((tilt_deg - tilt_whole) * 100);
+        // int16_t max_offset = absInt16(x_offset) > absInt16(y_offset) ? absInt16(x_offset) : absInt16(y_offset);
 
-        if (joy[0] < 300)
+        if (x_offset < -50)
             direction = LEFT;
-        else if (joy[0] > 700)
+        else if (x_offset > 50)
             direction = RIGHT;
-        else if (joy[1] > 700)
-            direction = UP;
-        else if (joy[1] < 300)
+        else if (y_offset < -50)
             direction = DOWN;
+        else if (y_offset > 50)
+            direction = UP;
         else
             direction = STOP;
+
+        // if no joystick input
+        if (direction == STOP)
+        {
+            freq = calculate_heartbeat_frequency(stepper_pan.steps_remaining, stepper_tilt.steps_remaining, 50, 150);
+        }
+        else
+        {
+            int16_t max_offset = absInt16(x_offset) > absInt16(y_offset) ? absInt16(x_offset) : absInt16(y_offset);
+
+            // Map offset (0–500ish) to heartbeat frequency (50–150 Hz)
+            freq = 50 + (max_offset * 100) / 500;
+            if (freq > 150)
+                freq = 150;
+        }
+
+        stepper_set_heartbeat(freq);
 
         if (stepper_tilt.steps_remaining == 0 && stepper_pan.steps_remaining == 0)
         {
             switch (direction)
             {
             case LEFT:
-                stepper_step_n(&stepper_pan, 1, 0);
-                stepper_step_n(&stepper_tilt, 1, 0);
-                break;
-            case RIGHT:
                 stepper_step_n(&stepper_pan, 1, 1);
                 stepper_step_n(&stepper_tilt, 1, 1);
                 break;
-            case UP:
+            case RIGHT:
+                stepper_step_n(&stepper_pan, 1, 0);
                 stepper_step_n(&stepper_tilt, 1, 0);
                 break;
             case DOWN:
+                stepper_step_n(&stepper_tilt, 1, 0);
+                break;
+            case UP:
                 stepper_step_n(&stepper_tilt, 1, 1);
                 break;
             case STOP:
@@ -139,23 +150,29 @@ int main(void)
         static int prev_button = 0;
         if (joy[2] == 1 && prev_button == 0)
         {
-            stepper_reset_position(&stepper_pan);
-            stepper_reset_position(&stepper_tilt);
+            stepper_goto_position(&stepper_pan, &stepper_tilt, 180, 45);
         }
         prev_button = joy[2];
 
-        uint8_t pd0_val = (PIND & (1 << PD0)) ? 1 : 0;
-        uint8_t pd1_val = (PIND & (1 << PD1)) ? 1 : 0;
+        // usartPrint("PD0 (RXD): %d, PD1 (TXD): %d\r\n", pd0_val, pd1_val);
+        // usartPrint("test\r\n");
 
-        usartPrint("PD0 (RXD): %d, PD1 (TXD): %d\r\n", pd0_val, pd1_val);
-        usartPrint("test\r\n");
+        // usartPrint("Joystick X: %+d, Y: %+d\r\n", joy[0] - 510, joy[1] - 495);
+        //usartPrint("Joystick X: %+d, Y: %+d, Freq: %d Hz\r\n", x_offset, y_offset, freq);
+
         /*
-        const char *dir_str[] = {"S", "L", "R", "U", "D"};
-        usartPrint("D:%s P:%ld/%d T:%ld/%d p:%d t:%d\r\n",
-                   dir_str[direction],
-                   stepper_pan.steps_taken, stepper_pan.steps_remaining,
-                   stepper_tilt.steps_taken, stepper_tilt.steps_remaining,
-                   pan_whole, tilt_whole);
+        static int tmp_counter = 0;
+        tmp_counter++;
+        if (tmp_counter > 500)
+        {
+            const char *dir_str[] = {"S", "L", "R", "U", "D"};
+            usartPrint("D:%s P:%ld/%d T:%ld/%d p:%d t:%d f:%d\r\n",
+                       dir_str[direction],
+                       stepper_pan.steps_taken, stepper_pan.steps_remaining,
+                       stepper_tilt.steps_taken, stepper_tilt.steps_remaining,
+                       angles[0], angles[2], freq);
+            tmp_counter = 0;
+        }
         */
     }
 
@@ -163,84 +180,50 @@ int main(void)
 }
 
 ISR(TIMER1_COMPA_vect)
-{ // toggle step pins
-    /*
-    if (stepper_pan.steps_remaining < 0)
-    {
-        stepper_pan.steps_remaining = 0;
-        //return;
-    }
-    if (stepper_tilt.steps_remaining < 0)
-    {
-        stepper_tilt.steps_remaining = 0;
-        //return;
-    }
-    */
-    if (stepper_tilt.steps_remaining > 0)
-    {
-        BIT_SET(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
-        _delay_us(1);
-        BIT_CLR(*(stepper_tilt.port), stepper_tilt.step_pin); // Toggle PD1 (Tilt)
-        //_delay_us(1);
-        stepper_tilt.steps_remaining--;
+{
+    static uint8_t phase = 0;
+    phase ^= 1;
+    if (phase == 1)
+        return; // count only full pulse (2 edges = 1 pulse)
 
-        int8_t step_direction = stepper_tilt.dir ? 1 : -1;
-        stepper_tilt.steps_taken += step_direction * stepper_microstep_multiplier(stepper_tilt.microstep_mode);
-    }
-
+    // --- PAN STEPPER ---
     if (stepper_pan.steps_remaining > 0)
     {
-        BIT_SET(*(stepper_pan.port), stepper_pan.step_pin); // Toggle PB1 (Pan)
-        _delay_us(1);
-        BIT_CLR(*(stepper_pan.port), stepper_pan.step_pin); // Toggle PB1 (Pan)
-        //_delay_us(1);
+        if (stepper_pan.disable)
+        { // enable only if currently disabled
+            stepper_set_disable(&stepper_pan, false);
+            stepper_apply_config(&stepper_pan);
+        }
         stepper_pan.steps_remaining--;
-
-        int8_t step_direction = stepper_pan.dir ? 1 : -1;
-        stepper_pan.steps_taken += step_direction * stepper_microstep_multiplier(stepper_pan.microstep_mode);
+        stepper_pan.steps_taken += (stepper_pan.dir) ? -1 : 1;
+    }
+    else
+    {
+        if (!stepper_pan.disable)
+        { // disable only if currently enabled
+            stepper_set_disable(&stepper_pan, true);
+            stepper_apply_config(&stepper_pan);
+        }
     }
 
-    /*
-     // PAN
-     if (stepper_pan.steps_remaining > 0)
-     {
-         if (!stepper_pan.step_pin_state)
-         {
-             // Set pin HIGH
-             BIT_SET(*(stepper_pan.port), stepper_pan.step_pin);
-             stepper_pan.step_pin_state = true;
-         }
-         else
-         {
-             // Set pin LOW, update counters
-             BIT_CLR(*(stepper_pan.port), stepper_pan.step_pin);
-             stepper_pan.step_pin_state = false;
+    // --- TILT STEPPER ---
+    if (stepper_tilt.steps_remaining > 0)
+    {
+        if (stepper_tilt.disable)
+        {
+            stepper_set_disable(&stepper_tilt, false);
+            stepper_apply_config(&stepper_tilt);
+        }
 
-             stepper_pan.steps_remaining--;
-             int8_t step_direction = stepper_pan.dir ? 1 : -1;
-             stepper_pan.steps_taken += step_direction * stepper_microstep_multiplier(stepper_pan.microstep_mode);
-         }
-     }
-
-     // TILT
-     if (stepper_tilt.steps_remaining > 0)
-     {
-         if (!stepper_tilt.step_pin_state)
-         {
-             // Set pin HIGH
-             BIT_SET(*(stepper_tilt.port), stepper_tilt.step_pin);
-             stepper_tilt.step_pin_state = true;
-         }
-         else
-         {
-             // Set pin LOW, update counters
-             BIT_CLR(*(stepper_tilt.port), stepper_tilt.step_pin);
-             stepper_tilt.step_pin_state = false;
-
-             stepper_tilt.steps_remaining--;
-             int8_t step_direction = stepper_tilt.dir ? 1 : -1;
-             stepper_tilt.steps_taken += step_direction * stepper_microstep_multiplier(stepper_tilt.microstep_mode);
-         }
-     }
-     */
+        stepper_tilt.steps_remaining--;
+        stepper_tilt.steps_taken += (stepper_tilt.dir) ? -1 : 1;
+    }
+    else
+    {
+        if (!stepper_tilt.disable)
+        {
+            stepper_set_disable(&stepper_tilt, true);
+            stepper_apply_config(&stepper_tilt);
+        }
+    }
 }
