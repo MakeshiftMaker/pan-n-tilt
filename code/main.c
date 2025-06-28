@@ -110,7 +110,7 @@ int main(void)
         // if no joystick input
         if (direction == STOP)
         {
-            freq = calculate_heartbeat_frequency(stepper_pan.steps_remaining, stepper_tilt.steps_remaining, 50, 150);
+            freq = calculate_heartbeat_frequency(stepper_pan.steps_remaining, stepper_tilt.steps_remaining, 100, 200);
         }
         else
         {
@@ -150,7 +150,7 @@ int main(void)
         static int prev_button = 0;
         if (joy[2] == 1 && prev_button == 0)
         {
-            stepper_goto_position(&stepper_pan, &stepper_tilt, 180, 45);
+            stepper_goto_position(&stepper_pan, &stepper_tilt, 0, 90);
         }
         prev_button = joy[2];
 
