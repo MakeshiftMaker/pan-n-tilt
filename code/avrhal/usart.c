@@ -120,7 +120,7 @@ bool usartReadLine(char *out, uint8_t maxLength)
         char c = rxBuffer[rxTail];
         rxTail = (rxTail + 1) % RX_BUF_SIZE;
 
-        if (c == '\r')  // Your chosen terminator
+        if (c == '\n' || c== '\r')  // Your chosen terminator
         {
             if (lineIndex > 0)
             {

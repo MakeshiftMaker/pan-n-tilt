@@ -44,18 +44,18 @@ static void handleCommand(const char *cmd, Stepper *pan, Stepper *tilt)
     }
 
     // Check for AZ? command (query current azimuth)
-    if (strcasecmp(cmd, "AZ?") == 0)
+    if (strcasecmp(cmd, "AZ") == 0)
     {
         stepper_get_angles(pan, tilt, angles);
-        usartPrint("Current AZ: %d\r\n", angles[0]);
+        usartPrint("AZ%d.0\n", angles[0]);
         return;
     }
 
     // Check for EL? command (query current elevation)
-    if (strcasecmp(cmd, "EL?") == 0)
+    if (strcasecmp(cmd, "EL") == 0)
     {
         stepper_get_angles(pan, tilt, angles);
-        usartPrint("Current EL: %d\r\n", angles[2]);
+        usartPrint("EL%d.0\n", angles[2]);
         return;
     }
 
