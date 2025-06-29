@@ -247,7 +247,8 @@ static int shortest_angle_diff(int current, int target)
 // New go_to function that takes stepper pointers
 void stepper_goto_position(Stepper *pan, Stepper *tilt, int target_azimuth, int target_elevation)
 {
-    if(pan->steps_remaining > 0 || tilt->steps_remaining >0){ // make sure previous goto is finished before starting another
+    if (pan->steps_remaining > 0 || tilt->steps_remaining > 0)
+    { // make sure previous goto is finished before starting another
         return;
     }
     // Clamp tilt to limits
@@ -302,12 +303,13 @@ void stepper_goto_position(Stepper *pan, Stepper *tilt, int target_azimuth, int 
 int calculate_heartbeat_frequency(uint16_t pan_steps, uint16_t tilt_steps, uint8_t min_freq, uint8_t max_freq)
 {
     int freq = ((pan_steps / 50 + tilt_steps / 50) * max_freq) + min_freq;
-    if (freq < 50){
+    if (freq < 50)
+    {
         freq = 50;
     }
-    else if(freq > 150){
+    else if (freq > 150)
+    {
         freq = 150;
     }
     return freq;
 }
-
