@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <util/delay.h>
 
 #define CMD_BUFFER_SIZE 64
 
@@ -120,6 +121,7 @@ void commandParserPoll(Stepper *pan, Stepper *tilt)
         {
             // usartPrint("test2");
             handleCommand(buffer, pan, tilt);
+            
         }
     }
 }
