@@ -23,12 +23,18 @@ static void trim(char *str)
     *(end + 1) = '\0';
 }
 
-// Example command handler
 static void handleCommand(const char *cmd, Stepper *pan, Stepper *tilt)
 {
+    int az = -1;             // -1 means "not specified"
+    int el = -1;
+    int angles[4];
+    const char *az_ptr = NULL;
+    const char *el_ptr = NULL;
+    bool valid = false;
+
+    // Check for status command first
     if (strcasecmp(cmd, "STATUS") == 0)
     {
-        int angles[4];
         stepper_get_angles(pan, tilt, angles);
         usartPrint("P:%ld/%d T:%ld/%d p:%d t:%d\r\n",
                    pan->steps_taken, pan->steps_remaining,
@@ -37,18 +43,31 @@ static void handleCommand(const char *cmd, Stepper *pan, Stepper *tilt)
         return;
     }
 
-    int az = -1; // -1 means "not specified"
-    int el = -1;
+    // Check for AZ? command (query current azimuth)
+    if (strcasecmp(cmd, "AZ?") == 0)
+    {
+        stepper_get_angles(pan, tilt, angles);
+        usartPrint("Current AZ: %d\r\n", angles[0]);
+        return;
+    }
 
-    const char *az_ptr = strcasestr(cmd, "AZ");
-    const char *el_ptr = strcasestr(cmd, "EL");
+    // Check for EL? command (query current elevation)
+    if (strcasecmp(cmd, "EL?") == 0)
+    {
+        stepper_get_angles(pan, tilt, angles);
+        usartPrint("Current EL: %d\r\n", angles[2]);
+        return;
+    }
 
-    bool valid = false;
+    az_ptr = strcasestr(cmd, "AZ");
+    el_ptr = strcasestr(cmd, "EL");
 
     if (az_ptr)
     {
         if (sscanf(az_ptr + 2, "%d", &az) == 1)
+        {
             valid = true;
+        }
         else
         {
             usartPrint("Invalid AZ format\r\n");
@@ -59,7 +78,9 @@ static void handleCommand(const char *cmd, Stepper *pan, Stepper *tilt)
     if (el_ptr)
     {
         if (sscanf(el_ptr + 2, "%d", &el) == 1)
+        {
             valid = true;
+        }
         else
         {
             usartPrint("Invalid EL format\r\n");
@@ -73,8 +94,6 @@ static void handleCommand(const char *cmd, Stepper *pan, Stepper *tilt)
         return;
     }
 
-    // Fill in current position if one value was omitted
-    int angles[4];
     stepper_get_angles(pan, tilt, angles);
     if (az == -1)
         az = angles[0];
@@ -83,6 +102,9 @@ static void handleCommand(const char *cmd, Stepper *pan, Stepper *tilt)
 
     stepper_goto_position(pan, tilt, az, el);
 }
+
+
+
 
 
 // Call this function repeatedly in main loop
