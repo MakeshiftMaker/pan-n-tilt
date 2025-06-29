@@ -1,48 +1,101 @@
-# Pan-Tilt System mit Joysticksteuerung
+# Pan-Tilt System with Joystick Control
 
-## Projektbeschreibung
+## Project Overview
 
-Dieses Projekt implementiert ein einfaches **Pan-Tilt-System** mit zwei Schrittmotoren, die durch einen analogen **Joystick** gesteuert werden. Der Benutzer kann die **Neigung (Tilt)** und **Schwenkung (Pan)** über die Joystick-Achsen manuell steuern. Ein zusätzlicher Button erlaubt das **Zurücksetzen der Position** in die Mitte. Ebenso ist es möglich den Mechanismus per CLI Eingaben auszurichten.
+This project implements a simple **pan-tilt mechanism** driven by two stepper motors, allowing manual control via a **2-axis analog joystick**. Users can adjust the **azimuth (pan)** and **elevation (tilt)** using joystick movements. A button on the joystick resets the system to its centered position. Additionally, orientation can be controlled via command-line input through a serial interface.
 
-Das Projekt basiert auf einem **ATmega32-Mikrocontroller** und verwendet eine benutzerdefinierte Hardware-Abstraktionsschicht (`avrhal`) zur Steuerung von Stepper-Motoren, ADC, USART und Joystick.
+The system is built around an **ATmega32 microcontroller** and uses a custom hardware abstraction layer (**avrhal**) to manage stepper motors, ADC, USART communication, and joystick input.
 
 ---
 
 ## Features
 
-- **Ansteuerung von zwei Schrittmotoren** (Pan & Tilt) über eine einstellbare Taktfrequenz
-- **Analoge Steuerung** der Bewegungsrichtung durch einen Joystick (X- & Y-Achse)
-- **Tastergesteuertes Zurücksetzen** der Pan-Tilt-Position in die Ausgangslage
-- **Ausrichtung per CLI** Eingabe ermöglicht genaue Ausrichtung des Mechanismus
+- **Hardware-level control of stepper motors** using A4988 stepper drivers, managed through custom abstraction
+- **Precise positioning** of the pan-tilt mechanism with an accuracy of 1° in both azimuth and elevation axes
+- **Manual control** via a 2D analog joystick (X/Y axes) for intuitive real-time positioning
+- **Position reset** function via joystick button to return to neutral (centered) orientation
+- **USART interface** for remote control and feedback, compatible with EasyComm2-style commands
+- **Interoperability with rotctl and Gpredict**, allowing for automatic satellite tracking
+- **Low CPU overhead**, with motor stepping handled by hardware timers (no pin toggling in interrupts)
+- **Command-line control** via serial terminal (e.g., `minicom`) to issue commands or monitor system status
 
 ---
 
-## Aufbau
+## Hardware Setup
 
-- **Mikrocontroller:** ATmega32  
-- **Motorsteuerung:** Zwei Schrittmotoren
-- **Joystick:** 2D Analog-Joystick (X, Y, Button)
-- **Kommunikation:** USART (9600 Baud, 8N1)
-- **Bibliotheken:** Eigene HAL (`avrhal`) für Stepper, ADC, Joystick, USART
+- **Microcontroller:** ATmega32  
+- **Motor Control:** 2x stepper motors with A4988 drivers  
+- **Joystick:** 2-axis analog joystick with integrated pushbutton  
+- **Communication:** USART @ 9600 Baud, 8N1  
+- **Custom HAL:** 
+  - Stepper motor control
+  - ADC input for joystick
+  - USART serial communication
 
 ---
 
-## Abhängigkeiten
+## Dependencies
 
-- `avr/io.h`, `util/delay.h` (AVR Libc)
-- Eigene HAL-Dateien:
+- AVR Libc (`avr/io.h`)
+- Custom AVR Hardware Abstraction Layer:
   - `avrhal/stepper.h`
   - `avrhal/joystick.h`
   - `avrhal/usart.h`
   - `avrhal/adc.h`
+  - `avrhal/commandParser.h`
   - `utils/bit.h`
 
 ---
 
-## Bedienung
+## Usage Instructions
 
-1. **Joystick nach rechts/links bewegen:** Schwenkt den Motor (Pan)
-2. **Joystick nach oben/unten bewegen:** Neigt den Motor (Tilt)
-3. **Joystick drücken (Button):** Beide Motoren fahren automatisch in ihre Nullposition zurück
-4. **USART-Monitor (z. B. `minicom`):** Zeigt Joystick-Werte und Motorstatus live an
+### Manual Control (via Joystick)
+1. **Move joystick left/right** – controls horizontal panning (azimuth)
+2. **Move joystick up/down** – controls vertical tilting (elevation)
+3. **Press joystick button** – resets both motors to their zero (center) position
+
+### Remote Control (via USART)
+Connect to the device using a serial terminal (e.g., `minicom`) at **9600 Baud, 8N1**. The following commands are supported:
+
+#### Query Commands
+- `STATUS`  
+  Prints detailed stepper status and current angles in the format:  
+  `P:<taken>/<remaining> T:<taken>/<remaining> p:<azimuth> t:<elevation>`
+  
+- `AZ`  
+  Returns the current azimuth angle (in degrees):  
+  `AZ<value>.0`
+
+- `EL`  
+  Returns the current elevation angle (in degrees):  
+  `EL<value>.0`
+
+#### Position Commands
+- `AZ<value>`  
+  Sets the azimuth to the specified angle (integer degrees).  
+  Example: `AZ45`
+
+- `EL<value>`  
+  Sets the elevation to the specified angle.  
+  Example: `EL30`
+
+- `AZ<value> EL<value>`  
+  Sets both azimuth and elevation in one command.  
+  Example: `AZ90 EL45`
+
+> **Note:** Commands are case-insensitive and must be followed by a newline (`\n`) or carriage return (`\r\n`) when sent over serial.
+
+
+---
+
+## TODO
+
+- Implement **different microstepping modes** (currently only full-step is supported) for finer orientation control
+- Refactor stepper logic to use **two independent hardware timers** for better per-motor speed control and increased flexibility
+- Add **limit switch support** for physical range detection and homing
+- Add EEPROM storage to **retain last known position** across power cycles
+- Implement feedback system to confirm **motor position synchronization**
+- Optional: Integrate **OLED or LCD** for local display of position or status
+
+---
 
