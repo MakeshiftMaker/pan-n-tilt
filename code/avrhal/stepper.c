@@ -13,7 +13,7 @@
 #define STEP_ANGLE 1.8 // degrees per full motor step
 #define FULL_ROTATION 360
 #define TILT_MIN 0
-#define TILT_MAX 180
+#define TILT_MAX 90
 
 void stepper_setup(Stepper *s)
 {
