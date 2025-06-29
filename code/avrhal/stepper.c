@@ -247,6 +247,9 @@ static int shortest_angle_diff(int current, int target)
 // New go_to function that takes stepper pointers
 void stepper_goto_position(Stepper *pan, Stepper *tilt, int target_azimuth, int target_elevation)
 {
+    if(pan->steps_remaining > 0 || tilt->steps_remaining >0){ // make sure previous goto is finished before starting another
+        return;
+    }
     // Clamp tilt to limits
     if (target_elevation < TILT_MIN)
         target_elevation = TILT_MIN;
