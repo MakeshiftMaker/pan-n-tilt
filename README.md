@@ -94,8 +94,16 @@ Connect to the device using a serial terminal (e.g., `minicom`) at **9600 Baud, 
 - Refactor stepper logic to use **two independent hardware timers** for better per-motor speed control and increased flexibility
 - Add **limit switch support** for physical range detection and homing
 - Add EEPROM storage to **retain last known position** across power cycles
-- Implement feedback system to confirm **motor position synchronization**
 - Optional: Integrate **OLED or LCD** for local display of position or status
 
 ---
+
+## Credits
+
+- **CAD Model Design:**  
+  Original pan-tilt CAD model by [Scienteer](https://www.youtube.com/watch?v=Su6O6155UJM)
+
+- **FreeCAD Conversion:**  
+  Converted to FreeCAD format by [Eyal Abraham](https://www.youtube.com/watch?v=LF1JT0Pmddc)
+
 
