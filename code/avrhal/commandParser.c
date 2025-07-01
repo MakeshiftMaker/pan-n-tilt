@@ -44,16 +44,6 @@ static void handleCommand(const char *cmd, Stepper *pan, Stepper *tilt)
         return;
     }
 
-    // Check for combined AZ EL query (case-insensitive)
-    /*
-    if (strcasecmp(cmd, "AZ EL") == 0)
-    {
-        stepper_get_angles(pan, tilt, angles);
-        usartPrint("AZ%d.0 EL%d.0\n", angles[0], angles[2]);
-        return;
-    }
-    */
-
     // Check for AZ? command (query current azimuth)
     if (strcasecmp(cmd, "AZ") == 0)
     {
