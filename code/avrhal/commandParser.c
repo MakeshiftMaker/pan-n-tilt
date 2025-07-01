@@ -26,7 +26,7 @@ static void trim(char *str)
 
 static void handleCommand(const char *cmd, Stepper *pan, Stepper *tilt)
 {
-    int az = -1;             // -1 means "not specified"
+    int az = -1; // -1 means "not specified"
     int el = -1;
     int angles[4];
     const char *az_ptr = NULL;
@@ -45,12 +45,14 @@ static void handleCommand(const char *cmd, Stepper *pan, Stepper *tilt)
     }
 
     // Check for combined AZ EL query (case-insensitive)
+    /*
     if (strcasecmp(cmd, "AZ EL") == 0)
     {
         stepper_get_angles(pan, tilt, angles);
         usartPrint("AZ%d.0 EL%d.0\n", angles[0], angles[2]);
         return;
     }
+    */
 
     // Check for AZ? command (query current azimuth)
     if (strcasecmp(cmd, "AZ") == 0)
@@ -112,10 +114,6 @@ static void handleCommand(const char *cmd, Stepper *pan, Stepper *tilt)
     stepper_goto_position(pan, tilt, az, el);
 }
 
-
-
-
-
 // Call this function repeatedly in main loop
 void commandParserPoll(Stepper *pan, Stepper *tilt)
 {
@@ -129,7 +127,6 @@ void commandParserPoll(Stepper *pan, Stepper *tilt)
         {
             // usartPrint("test2");
             handleCommand(buffer, pan, tilt);
-            
         }
     }
 }
