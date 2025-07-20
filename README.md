@@ -1,4 +1,4 @@
-# Pan-Tilt System with Joystick Control
+# Pan-Tilt System with Joystick Control :: ATMega328P
 
 ## Project Overview
 
@@ -23,7 +23,7 @@ The system is built around an **ATmega32 microcontroller** and uses a custom har
 
 ## Hardware Setup
 
-- **Microcontroller:** ATmega32  
+- **Microcontroller:** ATmega328P
 - **Motor Control:** 2x stepper motors with A4988 drivers  
 - **Joystick:** 2-axis analog joystick with integrated pushbutton  
 - **Communication:** USART @ 9600 Baud, 8N1  
