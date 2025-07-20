@@ -9,11 +9,11 @@
 #include "avrhal/commandParser.h"
 
 Stepper stepper_tilt = {
-    .ddr = &DDRB,
-    .port = &PORTB,
+    .ddr = &DDRD,
+    .port = &PORTD,
     //.step_pin = PB6,
-    .dir_pin = PB0,
-    .en_pin = PB2,
+    .dir_pin = PD2,
+    .en_pin = PD3,
     /*
     .ms1_pin = PB1,
     .ms2_pin = PB2,
@@ -34,11 +34,11 @@ Stepper stepper_tilt = {
 };
 
 Stepper stepper_pan = {
-    .ddr = &DDRB,
-    .port = &PORTB,
+    .ddr = &DDRD,
+    .port = &PORTD,
     //.step_pin = PD6,
-    .dir_pin = PB1,
-    .en_pin = PB3,
+    .dir_pin = PD4,
+    .en_pin = PD6,
     /*
     .ms1_pin = PD1,
     .ms2_pin = PD2,
@@ -69,7 +69,7 @@ int main(void)
     // steppers
     stepper_setup(&stepper_pan);
     stepper_setup(&stepper_tilt);
-    stepper_heartbeat_setup(200);
+    stepper_heartbeat_setup(0);
     stepper_heartbeat_enable();
 
     // int16_t max_offset;
@@ -79,22 +79,19 @@ int main(void)
     // usart setup
     usartSetup(USART_B9600, USART_CONFIG_8N1);
 
-    
-
     // stepper_step_n(&stepper_pan, 200 * 3, 1);
     // stepper_step_n(&stepper_tilt, 200 * 3, 1);
 
+    usartPrint("Setup: OK\n\rp-n-t V2.0.0\n\r");
+
     while (1)
     {
+        stepper_get_angles(&stepper_pan, &stepper_tilt, angles);
         commandParserPoll(&stepper_pan, &stepper_tilt);
 
-        joystickRead(joy);
-        int16_t x_offset = joy[0] - 510;
-        int16_t y_offset = joy[1] - 495;
-
-        stepper_get_angles(&stepper_pan, &stepper_tilt, angles);
-
-        // int16_t max_offset = absInt16(x_offset) > absInt16(y_offset) ? absInt16(x_offset) : absInt16(y_offset);
+        //joystickRead(joy);
+        int16_t x_offset = 0; //joy[0] - 510;
+        int16_t y_offset = 0; //joy[1] - 495;
 
         if (x_offset < -50)
             direction = LEFT;

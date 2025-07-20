@@ -28,12 +28,12 @@ static volatile uint8_t txPos = 0;
 
 static inline void enableTransmitBufferEmptyInterrupt() /* set UDRIE 1= enable data Register empty interrupt */
 {
-    BIT_SET(UCSRB, UDRIE);
+    BIT_SET(UCSR0B, UDRIE0);
 }
 
 static inline void disableTransmitBufferEmptyInterrupt() /* set UDRIE 0= disable data Register empty interrupt */
 {
-    BIT_CLR(UCSRB, UDRIE);
+    BIT_CLR(UCSR0B, UDRIE0);
 }
 
 void usartResetTransmission()
@@ -47,7 +47,7 @@ ISR(USART_UDRE_vect)
 {
     if (txPos < txLength)
     {
-        UDR = txBuffer[txPos];
+        UDR0 = txBuffer[txPos];
         txPos++;
     }
     else
@@ -62,15 +62,16 @@ void usartSetup(UsartBaudrate baud, UsartConfig config)
     {
         return; /* Unsupported */
     }
-    UCSRC = BIT(URSEL) | BIT(UCSZ0) | BIT(UCSZ1);
+    //pre-transition :: BIT(URSEL) | 
+    UCSR0C = BIT(UCSZ00) | BIT(UCSZ01);
 
     uint16_t ubrrValue = (F_CPU / (16UL * baud)) - 1;
-    UBRRL = ubrrValue & 0xFF;
-    UBRRH = (ubrrValue << 8) & 0xFF;
+    UBRR0L = ubrrValue & 0xFF;
+    UBRR0H = (ubrrValue << 8) & 0xFF;
 
-    BIT_SET(UCSRB, TXEN);
-    BIT_SET(UCSRB, RXEN);
-    BIT_SET(UCSRB, RXCIE);
+    BIT_SET(UCSR0B, TXEN0);
+    BIT_SET(UCSR0B, RXEN0);
+    BIT_SET(UCSR0B, RXCIE0);
 }
 
 uint8_t usartWriteString(const char *str)
@@ -152,9 +153,9 @@ bool usartReadLine(char *out, uint8_t maxLength)
 
 
 
-ISR(USART_RXC_vect)
+ISR(USART_RX_vect)
 {
-    uint8_t data = UDR;
+    uint8_t data = UDR0;
     uint8_t nextHead = (rxHead + 1) % RX_BUF_SIZE;
 
     // Echo typed character (optional)

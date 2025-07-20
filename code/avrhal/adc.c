@@ -9,10 +9,10 @@ static volatile uint8_t currentChannel = 0;
 
 void adcSetup()
 {
-    DDRA &= ~((1 << PA0) | (1 << PA1));
+    DDRC &= ~((1 << PC0) | (1 << PC1));
 
-    DDRA &= ~(1 << PA2);   // PA2 als Eingang
-    PORTA |= (1 << PA2);
+    DDRC &= ~(1 << PC2);   // PA2 als Eingang
+    PORTC |= (1 << PC2);
     /* Einzelmessung mit AREF als Referenzspannung */
     ADMUX = 0;  // REFS1=0, REFS0=0 → externe Referenz an AREF-Pin
     ADCSRA = BIT(ADEN)                 // ADC aktivieren
@@ -44,7 +44,7 @@ void adcSetupFreeRunning()
            | BIT(ADIE)                 // Interrupt Enable
            | BIT(ADPS2) | BIT(ADPS1) | BIT(ADPS0); // Prescaler 128
 
-    SFIOR &= ~(BIT(ADTS2) | BIT(ADTS1) | BIT(ADTS0)); // Free Running Mode
+    ADCSRB &= ~(BIT(ADTS2) | BIT(ADTS1) | BIT(ADTS0)); // Free Running Mode
 
     BIT_SET(ADCSRA, ADSC);  // Erste Wandlung starten
 }

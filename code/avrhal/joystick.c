@@ -15,5 +15,5 @@ void joystickRead(int16_t data[3])
 {
     data[0] = adcLastRead(0);                     // X-Achse
     data[1] = adcLastRead(1);                     // Y-Achse
-    data[2] = !(PINA & (1 << PA2));               // Button gedrückt = 1
+    data[2] = !(PINC & (1 << PC2));               // Button gedrückt = 1
 }

@@ -6,8 +6,7 @@
 #include <stdlib.h>
 #include "usart.h"
 
-// #define STEP_DELAY_US 5000
-#define FCLK 8000000
+#define FCLK 16000000UL
 
 #define GEAR_RATIO 3   // motor steps are 3x gear output
 #define STEP_ANGLE 1.8 // degrees per full motor step
@@ -57,8 +56,8 @@ void stepper_heartbeat_setup(int f)
 { // set up timer1 to interrupt with frequency f Hz
     // set up the TCCR1A/B registries
 
-    BIT_SET(DDRD, PD4);
-    BIT_SET(DDRD, PD5);
+    BIT_SET(DDRB, PB1);
+    BIT_SET(DDRB, PB2);
 
     // clear Compare Output Modes for PB1/PB2 normal operation
     BIT_CLR(TCCR1A, COM1A1);
@@ -84,7 +83,7 @@ void stepper_heartbeat_setup(int f)
     BIT_CLR(TCCR1B, CS10);
     */
     // enable interrupts on compare match
-    BIT_SET(TIMSK, OCIE1A);
+    BIT_SET(TIMSK1, OCIE1A);
 
     // calculate OCR1A according to desired frequency
     OCR1A = (FCLK / (16 * f)) - 1;
