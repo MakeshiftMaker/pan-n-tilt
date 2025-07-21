@@ -93,19 +93,11 @@ int main(void)
         commandParserPoll(&stepper_pan, &stepper_tilt);
 
         //joystickRead(joy);
+        //set to zero for now, since no joystick is attached
         int16_t x_offset = 0; //joy[0] - 510;
         int16_t y_offset = 0; //joy[1] - 495;
 
-        if (x_offset < -JOYSTICK_DEADZONE)
-            direction = LEFT;
-        else if (x_offset > JOYSTICK_DEADZONE)
-            direction = RIGHT;
-        else if (y_offset < -JOYSTICK_DEADZONE)
-            direction = DOWN;
-        else if (y_offset > JOYSTICK_DEADZONE)
-            direction = UP;
-        else
-            direction = STOP;
+        direction = joystick_get_direction(x_offset, y_offset, JOYSTICK_DEADZONE);
 
         // if no joystick input
         if (direction == STOP)
