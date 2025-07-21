@@ -9,6 +9,9 @@
 #include "avrhal/commandParser.h"
 
 #define PRESCALER TIMER_CLK_8
+#define JOYSTICK_DEADZONE 50
+#define MIN_FREQ 100
+#define MAX_FREQ 150
 
 Stepper stepper_tilt = {
     .ddr = &DDRD,
@@ -93,13 +96,13 @@ int main(void)
         int16_t x_offset = 0; //joy[0] - 510;
         int16_t y_offset = 0; //joy[1] - 495;
 
-        if (x_offset < -50)
+        if (x_offset < -JOYSTICK_DEADZONE)
             direction = LEFT;
-        else if (x_offset > 50)
+        else if (x_offset > JOYSTICK_DEADZONE)
             direction = RIGHT;
-        else if (y_offset < -50)
+        else if (y_offset < -JOYSTICK_DEADZONE)
             direction = DOWN;
-        else if (y_offset > 50)
+        else if (y_offset > JOYSTICK_DEADZONE)
             direction = UP;
         else
             direction = STOP;
@@ -107,7 +110,7 @@ int main(void)
         // if no joystick input
         if (direction == STOP)
         {
-            freq = calculate_heartbeat_frequency(stepper_pan.steps_remaining, stepper_tilt.steps_remaining, 100, 150);
+            freq = calculate_heartbeat_frequency(stepper_pan.steps_remaining, stepper_tilt.steps_remaining, MIN_FREQ, MAX_FREQ);
         }
         else
         {
