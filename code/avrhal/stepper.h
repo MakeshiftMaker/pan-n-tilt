@@ -55,7 +55,7 @@ bool stepper_is_dirty(Stepper* s);
 uint8_t stepper_microstep_multiplier(MicrostepMode mode);
 
 // Heartbeat timer control
-void stepper_heartbeat_setup(int f);
+void stepper_heartbeat_setup();
 void stepper_set_heartbeat(int f);
 void stepper_heartbeat_enable();
 void stepper_heartbeat_disable();

@@ -14,6 +14,8 @@
 #define TILT_MIN 0
 #define TILT_MAX 90
 
+#define PRESCALER 8
+
 void stepper_setup(Stepper *s)
 {
     // Set direction of control pins as output
@@ -52,7 +54,8 @@ void stepper_setup(Stepper *s)
     //_delay_us(5000);
 }
 
-void stepper_heartbeat_setup(int f)
+
+void stepper_heartbeat_setup()
 { // set up timer1 to interrupt with frequency f Hz
     // set up the TCCR1A/B registries
 
@@ -85,14 +88,13 @@ void stepper_heartbeat_setup(int f)
     // enable interrupts on compare match
     BIT_SET(TIMSK1, OCIE1A);
 
-    // calculate OCR1A according to desired frequency
-    OCR1A = (FCLK / (16 * f)) - 1;
 }
 
 void stepper_set_heartbeat(int f)
 {
-    OCR1A = (FCLK / (16 * f)) - 1;
+    OCR1A = (FCLK / (2 * PRESCALER * f)) - 1;
 }
+
 
 void stepper_heartbeat_enable()
 {

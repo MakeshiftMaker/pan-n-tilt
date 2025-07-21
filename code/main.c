@@ -69,7 +69,8 @@ int main(void)
     // steppers
     stepper_setup(&stepper_pan);
     stepper_setup(&stepper_tilt);
-    stepper_heartbeat_setup(0);
+    stepper_heartbeat_setup();
+    stepper_set_heartbeat(0);
     stepper_heartbeat_enable();
 
     // int16_t max_offset;
@@ -78,9 +79,6 @@ int main(void)
 
     // usart setup
     usartSetup(USART_B9600, USART_CONFIG_8N1);
-
-    // stepper_step_n(&stepper_pan, 200 * 3, 1);
-    // stepper_step_n(&stepper_tilt, 200 * 3, 1);
 
     usartPrint("Setup: OK\n\rp-n-t V2.0.0\n\r");
 
