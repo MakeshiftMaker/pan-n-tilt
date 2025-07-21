@@ -76,7 +76,7 @@ int main(void)
     stepper_setup(&stepper_tilt);
     stepper_heartbeat_setup();
     stepper_set_heartbeat(0, PRESCALER);
-    stepper_heartbeat_enable(PRESCALER);
+    stepper_heartbeat_set_clock_prescaler(PRESCALER);
 
     // int16_t max_offset;
     int freq = 0;

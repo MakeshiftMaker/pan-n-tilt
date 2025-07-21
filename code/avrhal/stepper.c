@@ -108,7 +108,7 @@ void stepper_set_heartbeat(int f, TimerPrescaler prescaler)
 }
 
 
-void stepper_heartbeat_enable(TimerPrescaler prescaler)
+void stepper_heartbeat_set_clock_prescaler(TimerPrescaler prescaler)
 {
     /*
     // Set prescaler to 8: CS12 = 0, CS11 = 1, CS10 = 0
@@ -121,14 +121,6 @@ void stepper_heartbeat_enable(TimerPrescaler prescaler)
     BIT_ASSIGN(TCCR1B, CS12, (prescaler & 0b100));
     BIT_ASSIGN(TCCR1B, CS11, (prescaler & 0b010));
     BIT_ASSIGN(TCCR1B, CS10, (prescaler & 0b001));
-}
-
-void stepper_heartbeat_disable()
-{
-    // Stop timer by clearing all clock select bits
-    BIT_CLR(TCCR1B, CS12);
-    BIT_CLR(TCCR1B, CS11);
-    BIT_CLR(TCCR1B, CS10);
 }
 
 // helper functions

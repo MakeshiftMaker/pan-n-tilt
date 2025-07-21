@@ -70,8 +70,7 @@ uint8_t stepper_microstep_multiplier(MicrostepMode mode);
 // Heartbeat timer control
 void stepper_heartbeat_setup();
 void stepper_set_heartbeat(int f, TimerPrescaler prescaler);
-void stepper_heartbeat_enable(TimerPrescaler prescaler);
-void stepper_heartbeat_disable();
+void stepper_heartbeat_set_clock_prescaler(TimerPrescaler prescaler);
 
 //stepper control
 void stepper_step_n(Stepper* stepper, int steps, bool dir);
