@@ -62,7 +62,7 @@ void stepper_heartbeat_setup()
     BIT_SET(DDRB, PB1);
     BIT_SET(DDRB, PB2);
 
-    // clear Compare Output Modes for PB1/PB2 normal operation
+    // clear compare output for pb1 (normal operation) but set pb2 to toggle on compare match
     BIT_CLR(TCCR1A, COM1A1);
     BIT_CLR(TCCR1A, COM1A0);
     BIT_CLR(TCCR1A, COM1B1);
