@@ -14,6 +14,19 @@ typedef enum
     MICROSTEP_SIXTEENTH = 0b111
 } MicrostepMode;
 
+
+typedef enum {
+    TIMER_NO_CLOCK        = 0x00, // 000: No clock source (Timer/Counter stopped)
+    TIMER_CLK_NO_PRESCALE = 0x01, // 001: clk I/O (no prescaling)
+    TIMER_CLK_8           = 0x02, // 010: clk I/O /8
+    TIMER_CLK_64          = 0x03, // 011: clk I/O /64
+    TIMER_CLK_256         = 0x04, // 100: clk I/O /256
+    TIMER_CLK_1024        = 0x05, // 101: clk I/O /1024
+    TIMER_EXT_FALLING     = 0x06, // 110: External clock source on T0 pin, falling edge
+    TIMER_EXT_RISING      = 0x07  // 111: External clock source on T0 pin, rising edge
+} TimerPrescaler;
+
+
 typedef struct
 {
     volatile uint8_t *ddr;
@@ -56,8 +69,8 @@ uint8_t stepper_microstep_multiplier(MicrostepMode mode);
 
 // Heartbeat timer control
 void stepper_heartbeat_setup();
-void stepper_set_heartbeat(int f);
-void stepper_heartbeat_enable();
+void stepper_set_heartbeat(int f, TimerPrescaler prescaler);
+void stepper_heartbeat_enable(TimerPrescaler prescaler);
 void stepper_heartbeat_disable();
 
 //stepper control
@@ -68,5 +81,7 @@ void stepper_goto_position(Stepper* pan, Stepper* tilt, int target_pan_deg, int 
 //getter
 void stepper_get_angles(const Stepper* pan, const Stepper* tilt, int angles[4]);
 int calculate_heartbeat_frequency(uint16_t pan_steps, uint16_t tilt_steps, uint8_t min_freq, uint8_t max_freq);
+uint16_t get_prescaler_value(TimerPrescaler prescaler);
+
 
 #endif

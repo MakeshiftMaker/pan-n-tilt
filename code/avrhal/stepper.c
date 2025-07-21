@@ -16,6 +16,7 @@
 
 #define PRESCALER 8
 
+
 void stepper_setup(Stepper *s)
 {
     // Set direction of control pins as output
@@ -90,18 +91,36 @@ void stepper_heartbeat_setup()
 
 }
 
-void stepper_set_heartbeat(int f)
+uint16_t get_prescaler_value(TimerPrescaler prescaler) {
+    switch (prescaler) {
+        case TIMER_CLK_NO_PRESCALE: return 1;
+        case TIMER_CLK_8:           return 8;
+        case TIMER_CLK_64:          return 64;
+        case TIMER_CLK_256:         return 256;
+        case TIMER_CLK_1024:        return 1024;
+        default:                    return 0; // 0 for NO_CLOCK or external sources
+    }
+}
+
+void stepper_set_heartbeat(int f, TimerPrescaler prescaler)
 {
-    OCR1A = (FCLK / (2 * PRESCALER * f)) - 1;
+    OCR1A = (FCLK / (2 * get_prescaler_value(prescaler) * f)) - 1;
 }
 
 
-void stepper_heartbeat_enable()
+void stepper_heartbeat_enable(TimerPrescaler prescaler)
 {
+    /*
     // Set prescaler to 8: CS12 = 0, CS11 = 1, CS10 = 0
     BIT_CLR(TCCR1B, CS12);
     BIT_SET(TCCR1B, CS11);
     BIT_CLR(TCCR1B, CS10);
+    */
+
+    //query each bit in the prescaler enum and set bits accordingly
+    BIT_ASSIGN(TCCR1B, CS12, (prescaler & 0b100));
+    BIT_ASSIGN(TCCR1B, CS11, (prescaler & 0b010));
+    BIT_ASSIGN(TCCR1B, CS10, (prescaler & 0b001));
 }
 
 void stepper_heartbeat_disable()

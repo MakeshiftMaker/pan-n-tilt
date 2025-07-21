@@ -8,6 +8,8 @@
 #include "utils/math.h"
 #include "avrhal/commandParser.h"
 
+#define PRESCALER TIMER_CLK_8
+
 Stepper stepper_tilt = {
     .ddr = &DDRD,
     .port = &PORTD,
@@ -70,8 +72,8 @@ int main(void)
     stepper_setup(&stepper_pan);
     stepper_setup(&stepper_tilt);
     stepper_heartbeat_setup();
-    stepper_set_heartbeat(0);
-    stepper_heartbeat_enable();
+    stepper_set_heartbeat(0, PRESCALER);
+    stepper_heartbeat_enable(PRESCALER);
 
     // int16_t max_offset;
     int freq = 0;
@@ -117,7 +119,7 @@ int main(void)
                 freq = 150;
         }
 
-        stepper_set_heartbeat(freq);
+        stepper_set_heartbeat(freq, PRESCALER);
 
         if (stepper_tilt.steps_remaining == 0 && stepper_pan.steps_remaining == 0)
         {
